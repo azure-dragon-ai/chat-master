@@ -5,8 +5,10 @@ import cn.hutool.http.ContentType;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.master.chat.client.enums.ChatModelEnum;
 import com.master.chat.common.constant.StringPoolConstant;
 import com.master.chat.llm.base.exception.LLMException;
+import com.master.chat.llm.base.key.updater.KeyUpdater;
 import com.master.chat.llm.wenxin.entity.request.ChatCompletion;
 import com.master.chat.llm.wenxin.entity.request.ChatCompletionMessage;
 import com.master.chat.llm.wenxin.entity.request.ImagesBody;
@@ -47,7 +49,7 @@ import java.util.concurrent.TimeUnit;
  */
 @NoArgsConstructor(force = true)
 @Slf4j
-public class WenXinClient {
+public class WenXinClient implements KeyUpdater {
 
     @NotNull
     @Getter
@@ -248,6 +250,17 @@ public class WenXinClient {
      */
     public static Builder builder() {
         return new Builder();
+    }
+
+    @Override
+    public String supportModel() {
+        return ChatModelEnum.WENXIN.getValue();
+    }
+
+    @Override
+    public void updateKey(KeyModel keyModel) {
+        this.setSecretKey(keyModel.getAppSecret());
+        this.setApiKey(keyModel.getAppKey());
     }
 
     public static final class Builder {

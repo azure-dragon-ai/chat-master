@@ -6,6 +6,8 @@ import cn.hutool.http.ContentType;
 import cn.hutool.json.JSONUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.master.chat.client.enums.ChatModelEnum;
+import com.master.chat.llm.base.key.updater.KeyUpdater;
 import com.master.chat.llm.deepseek.constant.DeepSeekConst;
 import com.master.chat.llm.deepseek.sse.DefaultPluginListener;
 import com.master.chat.llm.deepseek.sse.PluginListener;
@@ -52,7 +54,7 @@ import java.util.concurrent.TimeUnit;
  * 描述： open ai 客户端
  */
 @Slf4j
-public class DeepSeekStreamClient {
+public class DeepSeekStreamClient implements KeyUpdater {
     @Getter
     @Setter
     @NotNull
@@ -163,7 +165,6 @@ public class DeepSeekStreamClient {
      *
      * @param completion          open ai 参数
      * @param eventSourceListener sse监听器
-     * @see ConsoleEventSourceListener
      */
     public void streamCompletions(Completion completion, EventSourceListener eventSourceListener) {
         if (Objects.isNull(eventSourceListener)) {
@@ -417,6 +418,16 @@ public class DeepSeekStreamClient {
      */
     public static Builder builder() {
         return new Builder();
+    }
+
+    @Override
+    public String supportModel() {
+        return ChatModelEnum.DEEPSEEK.getValue();
+    }
+
+    @Override
+    public void updateKey(KeyModel keyModel) {
+        this.setApiKey(Collections.singletonList(keyModel.getAppKey()));
     }
 
     public static final class Builder {

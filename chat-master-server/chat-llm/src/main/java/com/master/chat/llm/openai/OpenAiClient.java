@@ -3,6 +3,8 @@ package com.master.chat.llm.openai;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
+import com.master.chat.client.enums.ChatModelEnum;
+import com.master.chat.llm.base.key.updater.KeyUpdater;
 import com.master.chat.llm.openai.constant.OpenAIConst;
 import com.master.chat.llm.openai.entity.Tts.TextToSpeech;
 import com.master.chat.llm.openai.entity.assistant.message.MessageFileResponse;
@@ -81,7 +83,7 @@ import java.util.concurrent.TimeUnit;
  */
 @Slf4j
 @Data
-public class OpenAiClient {
+public class OpenAiClient implements KeyUpdater {
     /**
      * keys
      */
@@ -1426,6 +1428,16 @@ public class OpenAiClient {
                 pageRequest.getOrder(),
                 pageRequest.getBefore(),
                 pageRequest.getAfter()).blockingGet();
+    }
+
+    @Override
+    public String supportModel() {
+        return ChatModelEnum.OPENAI.getValue();
+    }
+
+    @Override
+    public void updateKey(KeyModel keyModel) {
+        this.setApiKey(Collections.singletonList(keyModel.getAppKey()));
     }
 
 

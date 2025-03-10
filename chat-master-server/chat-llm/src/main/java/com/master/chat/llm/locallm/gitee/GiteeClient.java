@@ -1,8 +1,10 @@
 package com.master.chat.llm.locallm.gitee;
 
+import com.master.chat.client.enums.ChatModelEnum;
 import com.master.chat.client.model.dto.ChatMessageDTO;
 import com.master.chat.client.model.dto.ModelDTO;
 import com.master.chat.framework.validator.ValidatorUtil;
+import com.master.chat.llm.base.key.updater.KeyUpdater;
 import com.master.chat.llm.locallm.LocalLMClient;
 import com.master.chat.llm.locallm.gitee.constant.ApiConstant;
 import com.master.chat.llm.locallm.gitee.listener.SSEListener;
@@ -27,7 +29,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class GiteeClient {
+public class GiteeClient implements KeyUpdater {
     // 这里只用于设置连接和写入的超时时间
     private static final int TIMEOUT_SECONDS = 60;
     private static final int MAX_TOKENS = 10240;
@@ -141,5 +143,15 @@ public class GiteeClient {
             log.error("Error reading response body", e);
             return "Error reading response body";
         }
+    }
+
+    @Override
+    public String supportModel() {
+        return ChatModelEnum.LOCALLM.getValue();
+    }
+
+    @Override
+    public void updateKey(KeyModel keyModel) {
+        localLMClient.setApiKey(keyModel.getAppKey());
     }
 }
