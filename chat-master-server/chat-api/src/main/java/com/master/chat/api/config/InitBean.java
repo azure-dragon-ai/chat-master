@@ -26,10 +26,9 @@ import com.master.chat.sys.service.IBaseConfigService;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
+import javax.annotation.Resource;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.util.List;
@@ -47,9 +46,9 @@ import java.util.stream.Collectors;
 @Slf4j
 @Configuration
 public class InitBean {
-    @Autowired
+    @Resource
     private OpenkeyMapper openkeyMapper;
-    @Autowired
+    @Resource
     private IBaseConfigService baseConfigService;
 
     @Bean

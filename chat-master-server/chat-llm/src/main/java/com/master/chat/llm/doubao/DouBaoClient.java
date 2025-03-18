@@ -1,5 +1,7 @@
 package com.master.chat.llm.doubao;
 
+import com.master.chat.client.enums.ChatModelEnum;
+import com.master.chat.llm.base.key.updater.KeyUpdater;
 import com.master.chat.llm.doubao.listener.SSEListener;
 import com.volcengine.ark.runtime.model.completion.chat.ChatCompletionChunk;
 import com.volcengine.ark.runtime.model.completion.chat.ChatCompletionRequest;
@@ -22,7 +24,7 @@ import javax.servlet.http.HttpServletResponse;
  * Copyright Ⓒ 2023 曜栋网络科技工作室 Limited All rights reserved.
  */
 @Data
-public class DouBaoClient {
+public class DouBaoClient implements KeyUpdater {
 
     @Getter
     @Setter
@@ -43,7 +45,6 @@ public class DouBaoClient {
      * 同步响应
      *
      * @param request
-     * @param eventSourceListener
      */
     public ChatCompletionResult chat(ChatCompletionRequest request) {
         ArkService service = ArkService.builder().apiKey(apiKey).build();
@@ -60,7 +61,6 @@ public class DouBaoClient {
      * 流式响应
      *
      * @param request
-     * @param query
      */
     public Boolean streamChat(HttpServletResponse response, ChatCompletionRequest request, Long chatId, String parentMessageId, String version, String uid, Boolean isWs) {
         ArkService service = ArkService.builder().apiKey(apiKey).build();
@@ -82,11 +82,20 @@ public class DouBaoClient {
         return new DouBaoClient.Builder();
     }
 
+    @Override
+    public String supportModel() {
+        return ChatModelEnum.DOUBAO.getValue();
+    }
+
+    @Override
+    public void updateKey(KeyModel keyModel) {
+        this.setApiKey(keyModel.getAppKey());
+    }
+
     public static final class Builder {
         private String apiKey;
 
-        public Builder() {
-        }
+        public Builder() {}
 
         public DouBaoClient.Builder apiKey(String val) {
             apiKey = val;

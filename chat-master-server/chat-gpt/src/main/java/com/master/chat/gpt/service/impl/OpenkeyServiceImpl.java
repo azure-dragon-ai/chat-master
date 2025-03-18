@@ -1,23 +1,24 @@
 package com.master.chat.gpt.service.impl;
 
+import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.master.chat.llm.base.key.factory.KeyUpdaterFactory;
-import com.master.chat.llm.base.key.updater.KeyUpdater;
+import com.master.chat.client.model.dto.Query;
+import com.master.chat.common.api.IPageInfo;
+import com.master.chat.common.api.ResponseInfo;
+import com.master.chat.common.constant.StringPoolConstant;
+import com.master.chat.common.exception.ErrorException;
+import com.master.chat.common.utils.DozerUtil;
+import com.master.chat.framework.util.CommonUtil;
+import com.master.chat.framework.validator.ValidatorUtil;
 import com.master.chat.gpt.mapper.OpenkeyMapper;
 import com.master.chat.gpt.pojo.command.OpenkeyCommand;
 import com.master.chat.gpt.pojo.entity.Openkey;
 import com.master.chat.gpt.pojo.vo.OpenkeyVO;
 import com.master.chat.gpt.service.IOpenkeyService;
-import com.master.chat.common.api.IPageInfo;
-import com.master.chat.client.model.dto.Query;
-import com.master.chat.common.api.ResponseInfo;
-import com.master.chat.common.constant.StringPoolConstant;
-import com.master.chat.common.exception.ErrorException;
-import com.master.chat.framework.util.CommonUtil;
-import com.master.chat.common.utils.DozerUtil;
-import com.master.chat.framework.validator.ValidatorUtil;
+import com.master.chat.llm.base.key.factory.KeyUpdaterFactory;
+import com.master.chat.llm.base.key.updater.KeyUpdater;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -107,19 +108,11 @@ public class OpenkeyServiceImpl extends ServiceImpl<OpenkeyMapper, Openkey> impl
         openkey.setUpdateUser(command.getOperater());
         openkey.setUpdateTime(LocalDateTime.now());
         openkeyMapper.updateById(openkey);
-        // 修改内存中的key，解决无法马上生效问题
-        updateKey(command.getModel(),command.getAppKey());
+        // 更新内存中的值
+        KeyUpdater keyUpdater = keyUpdaterFactory.getKeyUpdater(command.getModel());
+        KeyUpdater.KeyModel keyModel = BeanUtil.toBean(command, KeyUpdater.KeyModel.class);
+        keyUpdater.updateKey(keyModel);
         return ResponseInfo.success();
-    }
-
-    /**
-     * 更新模型密钥
-     * @param model
-     * @param key
-     */
-    private void updateKey(String model,String key){
-        KeyUpdater keyUpdater = keyUpdaterFactory.getKeyUpdater(model);
-        keyUpdater.updateKey(key);
     }
 
     @Override

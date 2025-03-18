@@ -80,7 +80,7 @@ import java.util.concurrent.TimeUnit;
  * 描述： open ai 客户端
  */
 @Slf4j
-public class DeepSeekClient {
+public class DeepSeekClient{
     /**
      * keys
      */
@@ -1426,7 +1426,6 @@ public class DeepSeekClient {
                 pageRequest.getBefore(),
                 pageRequest.getAfter()).blockingGet();
     }
-
 
     public static final class Builder {
         /**

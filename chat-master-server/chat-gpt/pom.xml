@@ -24,6 +24,10 @@
             <groupId>com.master.chat</groupId>
             <artifactId>chat-llm</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.master.chat</groupId>
+            <artifactId>chat-llm</artifactId>
+        </dependency>
     </dependencies>
 
 </project>

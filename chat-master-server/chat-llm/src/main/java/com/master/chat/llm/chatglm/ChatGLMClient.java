@@ -2,6 +2,8 @@ package com.master.chat.llm.chatglm;
 
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSON;
+import com.master.chat.client.enums.ChatModelEnum;
+import com.master.chat.llm.base.key.updater.KeyUpdater;
 import com.master.chat.llm.chatglm.listener.SSEListener;
 import com.master.chat.common.exception.BusinessException;
 import com.zhipu.oapi.ClientV4;
@@ -31,7 +33,7 @@ import java.util.Map;
  */
 @Slf4j
 @NoArgsConstructor(force = true)
-public class ChatGLMClient {
+public class ChatGLMClient implements KeyUpdater {
     private static final String requestIdTemplate = "master-%d";
     @Getter
     @Setter
@@ -63,7 +65,6 @@ public class ChatGLMClient {
      * 同步响应
      *
      * @param request
-     * @param eventSourceListener
      */
     public ModelApiResponse chat(ChatCompletionRequest request) {
         // 插件调用
@@ -84,7 +85,6 @@ public class ChatGLMClient {
      * 流式响应
      *
      * @param request
-     * @param query
      */
     public Boolean streamChat(HttpServletResponse response, ChatCompletionRequest request, Long chatId, String parentMessageId, String version, String uid, Boolean isWs) {
         request.setStream(Boolean.TRUE);
@@ -146,6 +146,16 @@ public class ChatGLMClient {
      */
     public static Builder builder() {
         return new Builder();
+    }
+
+    @Override
+    public String supportModel() {
+        return ChatModelEnum.CHATGLM.getValue();
+    }
+
+    @Override
+    public void updateKey(KeyModel keyModel) {
+        this.setAppKey(keyModel.getAppKey());
     }
 
     public static final class Builder {
