@@ -2,7 +2,6 @@ package com.master.chat.common.utils;
 
 import com.master.chat.common.api.Tree;
 import com.master.chat.common.enums.IntegerEnum;
-import com.master.chat.common.utils.DozerUtil;
 
 import java.lang.reflect.Field;
 import java.util.List;

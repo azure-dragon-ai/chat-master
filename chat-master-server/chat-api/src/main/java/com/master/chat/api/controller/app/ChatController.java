@@ -1,17 +1,17 @@
 package com.master.chat.api.controller.app;
 
-import com.master.chat.api.base.BaseAppController;
+import com.master.chat.api.controller.base.BaseAppController;
 import com.master.chat.client.enums.ChatStatusEnum;
 import com.master.chat.client.model.command.ChatCommand;
+import com.master.chat.client.model.dto.Query;
 import com.master.chat.client.service.GptService;
+import com.master.chat.common.api.ResponseInfo;
+import com.master.chat.framework.validator.ValidatorUtil;
+import com.master.chat.framework.validator.base.BaseAssert;
 import com.master.chat.gpt.pojo.vo.ChatVO;
 import com.master.chat.gpt.service.IChatMessageService;
 import com.master.chat.gpt.service.IChatService;
 import com.master.chat.llm.base.service.LLMService;
-import com.master.chat.client.model.dto.Query;
-import com.master.chat.common.api.ResponseInfo;
-import com.master.chat.framework.validator.ValidatorUtil;
-import com.master.chat.framework.validator.base.BaseAssert;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;

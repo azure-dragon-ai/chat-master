@@ -1,21 +1,21 @@
-package com.master.chat.api.base;
+package com.master.chat.api.controller.base;
 
 import com.master.chat.api.security.JwtTokenUtils;
 import com.master.chat.api.security.UserDetail;
-import com.master.chat.gpt.pojo.entity.User;
-import com.master.chat.gpt.service.IUserService;
 import com.master.chat.common.api.ResponseInfo;
 import com.master.chat.common.constant.AuthConstant;
 import com.master.chat.common.constant.StringPoolConstant;
 import com.master.chat.common.exception.ProhibitVisitException;
 import com.master.chat.framework.util.IPUtil;
 import com.master.chat.framework.validator.ValidatorUtil;
+import com.master.chat.sys.pojo.entity.SysUser;
+import com.master.chat.sys.service.ISysUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.servlet.http.HttpServletRequest;
 
 /**
- * app基础接口抽象类
+ * 基础接口抽象类
  *
  * @author: Yang
  * @date: 2023/01/31
@@ -23,11 +23,11 @@ import javax.servlet.http.HttpServletRequest;
  * https://www.panday94.xyz
  * Copyright Ⓒ 2023 曜栋网络科技工作室 Limited All rights reserved.
  */
-public abstract class BaseAppController extends ResponseInfo {
+public abstract class BaseController extends ResponseInfo {
     @Autowired
     private HttpServletRequest request;
     @Autowired
-    private IUserService userService;
+    private ISysUserService sysUserService;
 
     /**
      * 获取请求ip地址
@@ -67,7 +67,7 @@ public abstract class BaseAppController extends ResponseInfo {
     /**
      * 获取登录用户id
      */
-    public Long getUserId() {
+    public Long getSysUserId() {
         return getLoginUser().getId();
     }
 
@@ -81,7 +81,7 @@ public abstract class BaseAppController extends ResponseInfo {
     /**
      * 获取登录用户名称
      */
-    public String getUserName() {
+    public String getSysUserName() {
         return getLoginUser().getUsername();
     }
 
@@ -90,8 +90,8 @@ public abstract class BaseAppController extends ResponseInfo {
      *
      * @return
      */
-    public User getUser() {
-        return userService.getById(getLoginUser().getId());
+    public SysUser getSysUser() {
+        return sysUserService.getById(getLoginUser().getId());
     }
 
 }

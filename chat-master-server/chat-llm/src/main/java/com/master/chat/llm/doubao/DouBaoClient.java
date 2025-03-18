@@ -1,7 +1,7 @@
 package com.master.chat.llm.doubao;
 
 import com.master.chat.client.enums.ChatModelEnum;
-import com.master.chat.llm.base.key.updater.KeyUpdater;
+import com.master.chat.llm.base.key.KeyUpdater;
 import com.master.chat.llm.doubao.listener.SSEListener;
 import com.volcengine.ark.runtime.model.completion.chat.ChatCompletionChunk;
 import com.volcengine.ark.runtime.model.completion.chat.ChatCompletionRequest;

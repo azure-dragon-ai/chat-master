@@ -1,6 +1,5 @@
-package com.master.chat.llm.base.key.factory;
+package com.master.chat.llm.base.key;
 
-import com.master.chat.llm.base.key.updater.KeyUpdater;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

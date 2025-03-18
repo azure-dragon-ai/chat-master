@@ -2,6 +2,7 @@ package com.master.chat.llm.openai.entity.chat;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.master.chat.llm.openai.OpenAiClient;
 import com.master.chat.llm.openai.entity.chat.tool.ToolChoice;
 import com.master.chat.llm.openai.entity.chat.tool.ToolChoiceObj;
 import com.master.chat.llm.openai.entity.chat.tool.Tools;
@@ -102,7 +103,7 @@ public class BaseChatCompletion implements Serializable {
      * 是否流式输出.
      * default:false
      *
-     * @see com.master.chat.llm.openai.OpenAiStreamClient
+     * @see OpenAiClient
      */
     @Builder.Default
     private boolean stream = false;

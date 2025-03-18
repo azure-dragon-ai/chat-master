@@ -1,12 +1,12 @@
 package com.master.chat.api.security;
 
-import com.master.chat.common.constant.RedisConstants;
-import com.master.chat.sys.service.impl.ResourceServiceImpl;
 import com.master.chat.common.constant.AuthConstant;
+import com.master.chat.common.constant.RedisConstants;
 import com.master.chat.common.constant.StringPoolConstant;
 import com.master.chat.common.exception.ValidateException;
 import com.master.chat.framework.util.ApplicationContextUtil;
 import com.master.chat.framework.validator.ValidatorUtil;
+import com.master.chat.sys.service.impl.ResourceServiceImpl;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;

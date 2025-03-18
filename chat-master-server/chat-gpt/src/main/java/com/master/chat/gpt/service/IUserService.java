@@ -1,13 +1,13 @@
 package com.master.chat.gpt.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.master.chat.client.model.dto.Query;
+import com.master.chat.common.api.IPageInfo;
+import com.master.chat.common.api.ResponseInfo;
 import com.master.chat.gpt.pojo.command.UserCommand;
 import com.master.chat.gpt.pojo.command.UserPasswordCommand;
 import com.master.chat.gpt.pojo.entity.User;
 import com.master.chat.gpt.pojo.vo.UserVO;
-import com.master.chat.common.api.IPageInfo;
-import com.master.chat.client.model.dto.Query;
-import com.master.chat.common.api.ResponseInfo;
 
 import java.util.List;
 

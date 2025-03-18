@@ -5,7 +5,6 @@ import com.master.chat.common.constant.StringPoolConstant;
 import com.master.chat.common.enums.ResponseEnum;
 import com.master.chat.common.exception.FileException;
 import com.master.chat.common.utils.DateUtil;
-import com.master.chat.framework.util.file.MimeTypeUtils;
 import com.master.chat.framework.validator.ValidatorUtil;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -13,8 +12,6 @@ import org.apache.tomcat.util.http.fileupload.impl.FileSizeLimitExceededExceptio
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.util.Base64;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
@@ -24,6 +21,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.text.DecimalFormat;
 import java.util.Arrays;
+import java.util.Base64;
 
 /**
  * 文件工具类

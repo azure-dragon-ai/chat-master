@@ -1,12 +1,12 @@
 package com.master.chat.sys.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.master.chat.common.api.ResponseInfo;
+import com.master.chat.common.constant.StringPoolConstant;
 import com.master.chat.sys.mapper.DeptMapper;
 import com.master.chat.sys.mapper.SysUserDeptMapper;
 import com.master.chat.sys.pojo.entity.SysUserDept;
 import com.master.chat.sys.service.ISysUserDeptService;
-import com.master.chat.common.api.ResponseInfo;
-import com.master.chat.common.constant.StringPoolConstant;
 import org.apache.commons.beanutils.ConvertUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

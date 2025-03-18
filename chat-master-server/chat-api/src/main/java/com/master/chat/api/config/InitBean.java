@@ -9,30 +9,24 @@ import com.master.chat.gpt.constant.BaseConfigConstant;
 import com.master.chat.gpt.mapper.OpenkeyMapper;
 import com.master.chat.gpt.pojo.vo.OpenkeyVO;
 import com.master.chat.llm.chatglm.ChatGLMClient;
-import com.master.chat.llm.deepseek.DeepSeekStreamClient;
-import com.master.chat.llm.deepseek.constant.DeepSeekConst;
+import com.master.chat.llm.deepseek.DeepSeekClient;
 import com.master.chat.llm.doubao.DouBaoClient;
 import com.master.chat.llm.internlm.InternlmClient;
 import com.master.chat.llm.locallm.LocalLMClient;
 import com.master.chat.llm.moonshot.MoonshotClient;
 import com.master.chat.llm.openai.OpenAiClient;
-import com.master.chat.llm.openai.OpenAiStreamClient;
 import com.master.chat.llm.openai.function.KeyRandomStrategy;
-import com.master.chat.llm.openai.interceptor.OpenAILogger;
 import com.master.chat.llm.spark.SparkClient;
 import com.master.chat.llm.tongyi.TongYiClient;
 import com.master.chat.llm.wenxin.WenXinClient;
 import com.master.chat.sys.service.IBaseConfigService;
 import lombok.extern.slf4j.Slf4j;
-import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
 import javax.annotation.Resource;
-import java.net.InetSocketAddress;
-import java.net.Proxy;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -52,99 +46,31 @@ public class InitBean {
     private IBaseConfigService baseConfigService;
 
     @Bean
-    public OpenAiStreamClient openAiStreamClient() {
-        List<OpenkeyVO> openkeys = openkeyMapper.listOpenkeyByModel(ChatModelEnum.OPENAI.getValue());
-        if (ValidatorUtil.isNullIncludeArray(openkeys)) {
-            log.error("未加载到ChatGpt模型token数据");
-            return new OpenAiStreamClient();
-        }
-        HttpLoggingInterceptor httpLoggingInterceptor = new HttpLoggingInterceptor(new OpenAILogger());
-        httpLoggingInterceptor.setLevel(HttpLoggingInterceptor.Level.HEADERS);
-        OkHttpClient okHttpClient = new OkHttpClient
-                .Builder()
-                // 如使用代理 请更换为代理地址
-                //.proxy(new Proxy(Proxy.Type.HTTP, new InetSocketAddress("127.0.0.1", 8080)))
-                .addInterceptor(httpLoggingInterceptor)
-                .connectTimeout(30, TimeUnit.SECONDS)
-                .writeTimeout(600, TimeUnit.SECONDS)
-                .readTimeout(600, TimeUnit.SECONDS)
-                .build();
-        BaseInfoDTO baseInfo = baseConfigService.getBaseConfigByName(BaseConfigConstant.BASE_INFO, BaseInfoDTO.class);
-        String apiHost = null;
-        if (baseInfo.getProxyType().equals(IntegerEnum.THREE.getValue()) && ValidatorUtil.isNotNull(baseInfo.getProxyAddress())) {
-            if (!baseInfo.getProxyAddress().contains(StringPoolConstant.COLON)) {
-                log.error("代理地址错误");
-                return new OpenAiStreamClient();
-            }
-            String[] proxyAddress = baseInfo.getProxyAddress().split(StringPoolConstant.COLON);
-            okHttpClient = new OkHttpClient
-                    .Builder()
-                    // 如使用代理 请更换为代理地址
-                    .proxy(new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxyAddress[0], Integer.valueOf(proxyAddress[1]))))
-                    .addInterceptor(httpLoggingInterceptor)
-                    .connectTimeout(30, TimeUnit.SECONDS)
-                    .writeTimeout(600, TimeUnit.SECONDS)
-                    .readTimeout(600, TimeUnit.SECONDS)
-                    .build();
-        } else if (baseInfo.getProxyType().equals(IntegerEnum.TWO.getValue()) && ValidatorUtil.isNotNull(baseInfo.getProxyServer())) {
-            apiHost = baseInfo.getProxyServer();
-        }
-        return OpenAiStreamClient
-                .builder()
-                .apiHost(apiHost)
-                .apiKey(openkeys.stream().map(v -> v.getAppKey()).collect(Collectors.toList()))
-                //自定义key使用策略 默认随机策略
-                .keyStrategy(new KeyRandomStrategy())
-                .okHttpClient(okHttpClient)
-                .build();
-    }
-
-    @Bean
     public OpenAiClient openAiClient() {
         List<OpenkeyVO> openkeys = openkeyMapper.listOpenkeyByModel(ChatModelEnum.OPENAI.getValue());
         if (ValidatorUtil.isNullIncludeArray(openkeys)) {
-            log.error("未加载到ChatGpt模型token数据");
+            log.error("未加载到OpenAI模型token数据");
             return new OpenAiClient();
         }
-        //本地开发需要配置代理地址
-        HttpLoggingInterceptor httpLoggingInterceptor = new HttpLoggingInterceptor(new OpenAILogger());
-        httpLoggingInterceptor.setLevel(HttpLoggingInterceptor.Level.HEADERS);
-        OkHttpClient okHttpClient = new OkHttpClient.Builder()
-                // 如使用代理 请更换为代理地址
-                //.proxy(new Proxy(Proxy.Type.HTTP, new InetSocketAddress("127.0.0.1", 8080)))
-                .addInterceptor(httpLoggingInterceptor)
-                .connectTimeout(30, TimeUnit.SECONDS)
-                .writeTimeout(600, TimeUnit.SECONDS)
-                .readTimeout(600, TimeUnit.SECONDS)
-                .build();
         BaseInfoDTO baseInfo = baseConfigService.getBaseConfigByName(BaseConfigConstant.BASE_INFO, BaseInfoDTO.class);
         String apiHost = null;
+        String[] proxyAddress = null;
         if (baseInfo.getProxyType().equals(IntegerEnum.THREE.getValue()) && ValidatorUtil.isNotNull(baseInfo.getProxyAddress())) {
             if (!baseInfo.getProxyAddress().contains(StringPoolConstant.COLON)) {
                 log.error("代理地址错误");
                 return new OpenAiClient();
             }
-            String[] proxyAddress = baseInfo.getProxyAddress().split(StringPoolConstant.COLON);
-            okHttpClient = new OkHttpClient
-                    .Builder()
-                    // 如使用代理 请更换为代理地址
-                    .proxy(new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxyAddress[0], Integer.valueOf(proxyAddress[1]))))
-                    .addInterceptor(httpLoggingInterceptor)
-                    .connectTimeout(30, TimeUnit.SECONDS)
-                    .writeTimeout(600, TimeUnit.SECONDS)
-                    .readTimeout(600, TimeUnit.SECONDS)
-                    .build();
+            proxyAddress = baseInfo.getProxyAddress().split(StringPoolConstant.COLON);
         } else if (baseInfo.getProxyType().equals(IntegerEnum.TWO.getValue()) && ValidatorUtil.isNotNull(baseInfo.getProxyServer())) {
             apiHost = baseInfo.getProxyServer();
         }
         return OpenAiClient
                 .builder()
                 .apiHost(apiHost)
-                // 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
                 .apiKey(openkeys.stream().map(v -> v.getAppKey()).collect(Collectors.toList()))
+                .proxyAddress(proxyAddress)
                 //自定义key使用策略 默认随机策略
                 .keyStrategy(new KeyRandomStrategy())
-                .okHttpClient(okHttpClient)
                 .build();
     }
 
@@ -243,33 +169,35 @@ public class InitBean {
 
     /**
      * DeepSeek
+     *
      * @return
      */
     @Bean
-    public DeepSeekStreamClient deepSeekStreamClient() {
+    public DeepSeekClient deepSeekClient() {
         List<OpenkeyVO> openkeys = openkeyMapper.listOpenkeyByModel(ChatModelEnum.DEEPSEEK.getValue());
         if (ValidatorUtil.isNullIncludeArray(openkeys)) {
             log.error("未加载到DeepSeek模型token数据");
-            return new DeepSeekStreamClient();
+            return new DeepSeekClient();
         }
-        HttpLoggingInterceptor httpLoggingInterceptor = new HttpLoggingInterceptor(new OpenAILogger());
-        httpLoggingInterceptor.setLevel(HttpLoggingInterceptor.Level.HEADERS);
-        OkHttpClient okHttpClient = new OkHttpClient
-                .Builder()
-                // 如使用代理 请更换为代理地址
-                //.proxy(new Proxy(Proxy.Type.HTTP, new InetSocketAddress("127.0.0.1", 8080)))
-                .addInterceptor(httpLoggingInterceptor)
-                .connectTimeout(30, TimeUnit.SECONDS)
-                .writeTimeout(600, TimeUnit.SECONDS)
-                .readTimeout(600, TimeUnit.SECONDS)
-                .build();
-        return DeepSeekStreamClient
+        BaseInfoDTO baseInfo = baseConfigService.getBaseConfigByName(BaseConfigConstant.BASE_INFO, BaseInfoDTO.class);
+        String apiHost = null;
+        String[] proxyAddress = null;
+        if (baseInfo.getProxyType().equals(IntegerEnum.THREE.getValue()) && ValidatorUtil.isNotNull(baseInfo.getProxyAddress())) {
+            if (!baseInfo.getProxyAddress().contains(StringPoolConstant.COLON)) {
+                log.error("代理地址错误");
+                return new DeepSeekClient();
+            }
+            proxyAddress = baseInfo.getProxyAddress().split(StringPoolConstant.COLON);
+        } else if (baseInfo.getProxyType().equals(IntegerEnum.TWO.getValue()) && ValidatorUtil.isNotNull(baseInfo.getProxyServer())) {
+            apiHost = baseInfo.getProxyServer();
+        }
+        return DeepSeekClient
                 .builder()
-                .apiHost(DeepSeekConst.HOST)
+                .apiHost(apiHost)
                 .apiKey(openkeys.stream().map(v -> v.getAppKey()).collect(Collectors.toList()))
+                .proxyAddress(proxyAddress)
                 //自定义key使用策略 默认随机策略
                 .keyStrategy(new KeyRandomStrategy())
-                .okHttpClient(okHttpClient)
                 .build();
     }
 
@@ -285,10 +213,7 @@ public class InitBean {
             log.error("未加载到豆包模型token数据，请添加后需要重启系统");
             return new DouBaoClient();
         }
-        if (ValidatorUtil.isNotNullIncludeArray(openkeys)) {
-            return DouBaoClient.builder().apiKey(openkeys.get(0).getAppKey()).build();
-        }
-        return DouBaoClient.builder().build();
+        return DouBaoClient.builder().apiKey(openkeys.get(0).getAppKey()).build();
     }
 
     /**
@@ -320,10 +245,10 @@ public class InitBean {
     @Bean
     public LocalLMClient localLMClient() {
         List<OpenkeyVO> openkeys = openkeyMapper.listOpenkeyByModel(ChatModelEnum.LOCALLM.getValue());
-        if (ValidatorUtil.isNotNullIncludeArray(openkeys)) {
-            return LocalLMClient.builder().apiKey(openkeys.get(0).getAppKey()).build();
+        if (ValidatorUtil.isNullIncludeArray(openkeys)) {
+            return LocalLMClient.builder().build();
         }
-        return LocalLMClient.builder().build();
+        return LocalLMClient.builder().apiKey(openkeys.get(0).getAppKey()).build();
     }
 
 }

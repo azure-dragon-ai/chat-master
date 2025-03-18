@@ -1,3 +1,15 @@
+## v1.2.2
+
+`2025-03-18`
+
+> [chat-master](https://gitee.com/panday94/chat-master)
+
+## Enhancement
+
+- 密钥自动更新功能优化
+- 优化llm初始化代码
+- 增加Dify接口。
+
 ## v1.2.1
 
 `2025-03-02`

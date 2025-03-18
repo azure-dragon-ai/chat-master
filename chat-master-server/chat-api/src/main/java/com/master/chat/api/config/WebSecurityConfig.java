@@ -2,8 +2,8 @@ package com.master.chat.api.config;
 
 import com.master.chat.api.security.JwtAuthenticationFilter;
 import com.master.chat.api.security.UserDetailsServiceImpl;
-import com.master.chat.framework.util.JWTPasswordEncoder;
 import com.master.chat.common.constant.HttpConstant;
+import com.master.chat.framework.util.JWTPasswordEncoder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

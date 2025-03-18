@@ -17,8 +17,8 @@ import com.master.chat.gpt.pojo.command.OpenkeyCommand;
 import com.master.chat.gpt.pojo.entity.Openkey;
 import com.master.chat.gpt.pojo.vo.OpenkeyVO;
 import com.master.chat.gpt.service.IOpenkeyService;
-import com.master.chat.llm.base.key.factory.KeyUpdaterFactory;
-import com.master.chat.llm.base.key.updater.KeyUpdater;
+import com.master.chat.llm.base.key.KeyUpdater;
+import com.master.chat.llm.base.key.KeyUpdaterFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

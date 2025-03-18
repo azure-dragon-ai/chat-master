@@ -1,7 +1,7 @@
 package com.master.chat.llm.tongyi;
 
 import com.master.chat.client.enums.ChatModelEnum;
-import com.master.chat.llm.base.key.updater.KeyUpdater;
+import com.master.chat.llm.base.key.KeyUpdater;
 import lombok.Data;
 
 /**

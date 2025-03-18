@@ -3,9 +3,9 @@ package com.master.chat.llm.chatglm;
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSON;
 import com.master.chat.client.enums.ChatModelEnum;
-import com.master.chat.llm.base.key.updater.KeyUpdater;
+import com.master.chat.common.exception.ValidateException;
+import com.master.chat.llm.base.key.KeyUpdater;
 import com.master.chat.llm.chatglm.listener.SSEListener;
-import com.master.chat.common.exception.BusinessException;
 import com.zhipu.oapi.ClientV4;
 import com.zhipu.oapi.Constants;
 import com.zhipu.oapi.service.v4.image.CreateImageRequest;
@@ -49,7 +49,7 @@ public class ChatGLMClient implements KeyUpdater {
 
     private ChatGLMClient(Builder builder) {
         if (StrUtil.isBlank(builder.appKey)) {
-            throw new BusinessException("构造错误: accessToken不能为空");
+            throw new ValidateException("构造错误: accessToken不能为空");
         }
         appKey = builder.appKey;
         appSecret = builder.appSecret;
@@ -139,14 +139,6 @@ public class ChatGLMClient implements KeyUpdater {
         return request;
     }
 
-    /**
-     * 构造
-     *
-     * @return
-     */
-    public static Builder builder() {
-        return new Builder();
-    }
 
     @Override
     public String supportModel() {
@@ -155,7 +147,26 @@ public class ChatGLMClient implements KeyUpdater {
 
     @Override
     public void updateKey(KeyModel keyModel) {
-        this.setAppKey(keyModel.getAppKey());
+        if (StrUtil.isBlank(keyModel.getAppKey())) {
+            throw new ValidateException("构造错误: accessToken不能为空");
+        }
+        this.appKey = keyModel.getAppKey();
+        this.appSecret = keyModel.getAppSecret();
+        this.apiSecretKey = keyModel.getAppKey();
+        if (StrUtil.isNotBlank(this.apiSecretKey) && StrUtil.isBlank(this.appSecret)) {
+            this.clientV4 = new ClientV4.Builder(apiSecretKey).build();
+        } else {
+            this.clientV4 = new ClientV4.Builder(appKey, appSecret).build();
+        }
+    }
+
+    /**
+     * 构造
+     *
+     * @return
+     */
+    public static Builder builder() {
+        return new Builder();
     }
 
     public static final class Builder {

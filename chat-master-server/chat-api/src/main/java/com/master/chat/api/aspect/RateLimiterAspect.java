@@ -1,11 +1,11 @@
 package com.master.chat.api.aspect;
 
-import com.master.chat.framework.util.RedisUtils;
 import com.master.chat.common.annotation.RateLimiter;
 import com.master.chat.common.enums.LimitTypeEnum;
 import com.master.chat.common.exception.ErrorException;
 import com.master.chat.framework.util.ApplicationContextUtil;
 import com.master.chat.framework.util.IPUtil;
+import com.master.chat.framework.util.RedisUtils;
 import com.master.chat.framework.validator.ValidatorUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;

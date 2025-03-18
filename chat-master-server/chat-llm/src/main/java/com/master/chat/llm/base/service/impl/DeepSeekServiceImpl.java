@@ -10,7 +10,6 @@ import com.master.chat.framework.validator.ValidatorUtil;
 import com.master.chat.llm.base.exception.LLMException;
 import com.master.chat.llm.base.service.ModelService;
 import com.master.chat.llm.deepseek.DeepSeekClient;
-import com.master.chat.llm.deepseek.DeepSeekStreamClient;
 import com.master.chat.llm.deepseek.enmus.Model;
 import com.master.chat.llm.deepseek.sse.SSEListener;
 import com.master.chat.llm.openai.entity.chat.ChatChoice;
@@ -37,16 +36,15 @@ import java.util.List;
 @Service
 public class DeepSeekServiceImpl implements ModelService {
     private static DeepSeekClient deepSeekClient;
-    private static DeepSeekStreamClient deepSeekStreamClient;
 
-    public DeepSeekServiceImpl(DeepSeekStreamClient deepSeekStreamClient) {
+    public DeepSeekServiceImpl(DeepSeekClient deepSeekClient) {
         DeepSeekServiceImpl.deepSeekClient = new DeepSeekClient();
-        DeepSeekServiceImpl.deepSeekStreamClient = deepSeekStreamClient;
+        DeepSeekServiceImpl.deepSeekClient = deepSeekClient;
     }
 
     @Override
     public ChatMessageCommand chat(List<ChatMessageDTO> chatMessages, Boolean isDraw, Long chatId, String version) {
-        if (ValidatorUtil.isNull(deepSeekStreamClient)) {
+        if (ValidatorUtil.isNull(deepSeekClient)) {
             throw new BusinessException("DeepSeek无有效token，请切换其他模型进行聊天");
         }
         List<Message> openAiMessages = new ArrayList<>();
@@ -78,7 +76,7 @@ public class DeepSeekServiceImpl implements ModelService {
     @SneakyThrows
     public Boolean streamChat(HttpServletResponse response, SseEmitter sseEmitter, List<ChatMessageDTO> chatMessages, Boolean isWs, Boolean isDraw,
                               Long chatId, String conversationId, String prompt, String version, String uid) {
-        if (ValidatorUtil.isNullIncludeArray(deepSeekStreamClient.getApiKey())) {
+        if (ValidatorUtil.isNullIncludeArray(deepSeekClient.getApiKey())) {
             throw new BusinessException("未加载到密钥信息");
         }
         List<Message> messages = new ArrayList<>();
@@ -92,7 +90,7 @@ public class DeepSeekServiceImpl implements ModelService {
                 .messages(messages)
                 .model(ValidatorUtil.isNotNull(version) ? version : Model.CHAT.getName())
                 .build();
-        deepSeekStreamClient.streamChatCompletion(completion, sseListener);
+        deepSeekClient.streamChatCompletion(completion, sseListener);
         if (isWs) {
             return false;
         }

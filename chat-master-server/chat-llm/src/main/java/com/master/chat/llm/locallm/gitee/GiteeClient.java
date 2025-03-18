@@ -4,7 +4,7 @@ import com.master.chat.client.enums.ChatModelEnum;
 import com.master.chat.client.model.dto.ChatMessageDTO;
 import com.master.chat.client.model.dto.ModelDTO;
 import com.master.chat.framework.validator.ValidatorUtil;
-import com.master.chat.llm.base.key.updater.KeyUpdater;
+import com.master.chat.llm.base.key.KeyUpdater;
 import com.master.chat.llm.locallm.LocalLMClient;
 import com.master.chat.llm.locallm.gitee.constant.ApiConstant;
 import com.master.chat.llm.locallm.gitee.listener.SSEListener;

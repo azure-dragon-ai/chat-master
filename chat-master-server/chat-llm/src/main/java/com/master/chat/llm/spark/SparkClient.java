@@ -3,7 +3,7 @@ package com.master.chat.llm.spark;
 import com.alibaba.fastjson.JSON;
 import com.master.chat.client.enums.ChatModelEnum;
 import com.master.chat.llm.base.exception.LLMException;
-import com.master.chat.llm.base.key.updater.KeyUpdater;
+import com.master.chat.llm.base.key.KeyUpdater;
 import com.master.chat.llm.spark.entity.request.ChatRequest;
 import com.master.chat.llm.spark.entity.response.ChatSyncResponse;
 import com.master.chat.llm.spark.enums.ModelEnum;
