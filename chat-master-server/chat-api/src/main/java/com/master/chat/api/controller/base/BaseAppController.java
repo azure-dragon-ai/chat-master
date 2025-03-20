@@ -8,8 +8,8 @@ import com.master.chat.common.constant.StringPoolConstant;
 import com.master.chat.common.exception.ProhibitVisitException;
 import com.master.chat.framework.util.IPUtil;
 import com.master.chat.framework.validator.ValidatorUtil;
-import com.master.chat.gpt.pojo.entity.User;
-import com.master.chat.gpt.service.IUserService;
+import com.master.chat.core.pojo.entity.User;
+import com.master.chat.core.service.IUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.servlet.http.HttpServletRequest;

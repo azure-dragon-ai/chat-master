@@ -5,9 +5,9 @@ import com.master.chat.common.config.dto.BaseInfoDTO;
 import com.master.chat.common.constant.StringPoolConstant;
 import com.master.chat.common.enums.IntegerEnum;
 import com.master.chat.framework.validator.ValidatorUtil;
-import com.master.chat.gpt.constant.BaseConfigConstant;
-import com.master.chat.gpt.mapper.OpenkeyMapper;
-import com.master.chat.gpt.pojo.vo.OpenkeyVO;
+import com.master.chat.core.constant.BaseConfigConstant;
+import com.master.chat.core.mapper.OpenkeyMapper;
+import com.master.chat.core.pojo.vo.OpenkeyVO;
 import com.master.chat.llm.chatglm.ChatGLMClient;
 import com.master.chat.llm.deepseek.DeepSeekClient;
 import com.master.chat.llm.doubao.DouBaoClient;
@@ -69,6 +69,26 @@ public class InitBean {
                 .apiHost(apiHost)
                 .apiKey(openkeys.stream().map(v -> v.getAppKey()).collect(Collectors.toList()))
                 .proxyAddress(proxyAddress)
+                //自定义key使用策略 默认随机策略
+                .keyStrategy(new KeyRandomStrategy())
+                .build();
+    }
+
+    /**
+     * DeepSeek
+     *
+     * @return
+     */
+    @Bean
+    public DeepSeekClient deepSeekClient() {
+        List<OpenkeyVO> openkeys = openkeyMapper.listOpenkeyByModel(ChatModelEnum.DEEPSEEK.getValue());
+        if (ValidatorUtil.isNullIncludeArray(openkeys)) {
+            log.error("未加载到DeepSeek模型token数据");
+            return new DeepSeekClient();
+        }
+        return DeepSeekClient
+                .builder()
+                .apiKey(openkeys.stream().map(v -> v.getAppKey()).collect(Collectors.toList()))
                 //自定义key使用策略 默认随机策略
                 .keyStrategy(new KeyRandomStrategy())
                 .build();
@@ -165,40 +185,6 @@ public class InitBean {
             return new MoonshotClient();
         }
         return MoonshotClient.builder().apiKey(openkey.getAppKey()).build();
-    }
-
-    /**
-     * DeepSeek
-     *
-     * @return
-     */
-    @Bean
-    public DeepSeekClient deepSeekClient() {
-        List<OpenkeyVO> openkeys = openkeyMapper.listOpenkeyByModel(ChatModelEnum.DEEPSEEK.getValue());
-        if (ValidatorUtil.isNullIncludeArray(openkeys)) {
-            log.error("未加载到DeepSeek模型token数据");
-            return new DeepSeekClient();
-        }
-        BaseInfoDTO baseInfo = baseConfigService.getBaseConfigByName(BaseConfigConstant.BASE_INFO, BaseInfoDTO.class);
-        String apiHost = null;
-        String[] proxyAddress = null;
-        if (baseInfo.getProxyType().equals(IntegerEnum.THREE.getValue()) && ValidatorUtil.isNotNull(baseInfo.getProxyAddress())) {
-            if (!baseInfo.getProxyAddress().contains(StringPoolConstant.COLON)) {
-                log.error("代理地址错误");
-                return new DeepSeekClient();
-            }
-            proxyAddress = baseInfo.getProxyAddress().split(StringPoolConstant.COLON);
-        } else if (baseInfo.getProxyType().equals(IntegerEnum.TWO.getValue()) && ValidatorUtil.isNotNull(baseInfo.getProxyServer())) {
-            apiHost = baseInfo.getProxyServer();
-        }
-        return DeepSeekClient
-                .builder()
-                .apiHost(apiHost)
-                .apiKey(openkeys.stream().map(v -> v.getAppKey()).collect(Collectors.toList()))
-                .proxyAddress(proxyAddress)
-                //自定义key使用策略 默认随机策略
-                .keyStrategy(new KeyRandomStrategy())
-                .build();
     }
 
     /**

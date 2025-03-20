@@ -6,7 +6,9 @@ import cn.hutool.http.ContentType;
 import cn.hutool.json.JSONUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.master.chat.client.enums.ChatModelEnum;
 import com.master.chat.framework.validator.ValidatorUtil;
+import com.master.chat.llm.base.key.KeyUpdater;
 import com.master.chat.llm.openai.constant.OpenAIConst;
 import com.master.chat.llm.openai.entity.Tts.TextToSpeech;
 import com.master.chat.llm.openai.entity.assistant.message.MessageFileResponse;
@@ -66,6 +68,7 @@ import com.master.chat.llm.openai.sse.PluginListener;
 import com.master.chat.llm.openai.utils.SSEUtil;
 import io.reactivex.Single;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 import okhttp3.logging.HttpLoggingInterceptor;
@@ -88,8 +91,9 @@ import java.util.concurrent.TimeUnit;
  * 描述： open ai 客户端
  */
 @Slf4j
-public class OpenAiClient {
+public class OpenAiClient implements KeyUpdater {
     @Getter
+    @Setter
     @NotNull
     private List<String> apiKey;
     /**
@@ -97,6 +101,11 @@ public class OpenAiClient {
      */
     @Getter
     private String apiHost;
+    /**
+     * 代理地址
+     */
+    @Getter
+    private String[] proxyAddress;
     /**
      * 自定义的okHttpClient
      * 如果不自定义 ，就是用sdk默认的OkHttpClient实例
@@ -110,9 +119,6 @@ public class OpenAiClient {
     @Getter
     private KeyStrategyFunction<List<String>, String> keyStrategy;
 
-    @Getter
-    private OpenAiApi openAiApi;
-
     /**
      * 自定义鉴权处理拦截器<br/>
      * 可以不设置，默认实现：DefaultOpenAiAuthInterceptor <br/>
@@ -123,6 +129,9 @@ public class OpenAiClient {
      */
     @Getter
     private OpenAiAuthInterceptor authInterceptor;
+
+    @Getter
+    private OpenAiApi openAiApi;
 
     /**
      * 默认的分页参数
@@ -158,8 +167,9 @@ public class OpenAiClient {
             builder.authInterceptor = new DefaultOpenAiAuthInterceptor();
         }
         authInterceptor = builder.authInterceptor;
+        proxyAddress = builder.proxyAddress;
         if (Objects.isNull(builder.okHttpClient)) {
-            builder.okHttpClient = this.okHttpClient(builder);
+            builder.okHttpClient = this.okHttpClient();
         }
         okHttpClient = builder.okHttpClient;
         this.openAiApi = new Retrofit.Builder()
@@ -173,24 +183,31 @@ public class OpenAiClient {
     /**
      * 创建默认的OkHttpClient
      */
-    private OkHttpClient okHttpClient(Builder builder) {
+    private OkHttpClient okHttpClient() {
         // 设置apiKeys和key的获取策略
         this.authInterceptor.setApiKey(this.apiKey);
         this.authInterceptor.setKeyStrategy(this.keyStrategy);
         HttpLoggingInterceptor httpLoggingInterceptor = new HttpLoggingInterceptor(new OpenAILogger());
         httpLoggingInterceptor.setLevel(HttpLoggingInterceptor.Level.HEADERS);
-        OkHttpClient okHttpClient = new OkHttpClient.Builder()
-                .addInterceptor(this.authInterceptor)
-                .addInterceptor(httpLoggingInterceptor)
-                .connectTimeout(10, TimeUnit.SECONDS)
-                .writeTimeout(50, TimeUnit.SECONDS)
-                .readTimeout(50, TimeUnit.SECONDS)
-                .build();
+        OkHttpClient okHttpClient;
+        if (ValidatorUtil.isNull(this.okHttpClient)) {
+            okHttpClient = new OkHttpClient.Builder()
+                    .addInterceptor(this.authInterceptor)
+                    .addInterceptor(httpLoggingInterceptor)
+                    .connectTimeout(10, TimeUnit.SECONDS)
+                    .writeTimeout(50, TimeUnit.SECONDS)
+                    .readTimeout(50, TimeUnit.SECONDS)
+                    .build();
+        } else {
+            okHttpClient = this.okHttpClient.newBuilder()
+                    .addInterceptor(this.authInterceptor)
+                    .build();
+        }
         // 如使用代理 使用代理地址
-        if (ValidatorUtil.isNotNullIncludeArray(builder.proxyAddress)) {
+        if (ValidatorUtil.isNotNullIncludeArray(this.proxyAddress)) {
             okHttpClient = okHttpClient
                     .newBuilder()
-                    .proxy(new Proxy(Proxy.Type.HTTP, new InetSocketAddress(builder.proxyAddress[0], Integer.parseInt(builder.proxyAddress[1]))))
+                    .proxy(new Proxy(Proxy.Type.HTTP, new InetSocketAddress(this.proxyAddress[0], Integer.parseInt(this.proxyAddress[1]))))
                     .build();
         }
         return okHttpClient;
@@ -1608,6 +1625,23 @@ public class OpenAiClient {
     public <R extends PluginParam, T> void streamChatCompletionWithPlugin(List<Message> messages, String model, EventSourceListener eventSourceListener, PluginAbstract<R, T> plugin) {
         ChatCompletion chatCompletion = ChatCompletion.builder().messages(messages).model(model).build();
         this.streamChatCompletionWithPlugin(chatCompletion, eventSourceListener, plugin);
+    }
+
+    @Override
+    public String supportModel() {
+        return ChatModelEnum.OPENAI.getValue();
+    }
+
+    @Override
+    public void updateKey(KeyUpdater.KeyModel keyModel) {
+        this.setApiKey(Collections.singletonList(keyModel.getAppKey()));
+        this.okHttpClient = this.okHttpClient();
+        this.openAiApi = new Retrofit.Builder()
+                .baseUrl(apiHost)
+                .client(okHttpClient)
+                .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
+                .addConverterFactory(JacksonConverterFactory.create())
+                .build().create(OpenAiApi.class);
     }
 
     /**

@@ -12,7 +12,7 @@
     <modules>
         <module>chat-quartz</module>
         <module>chat-sys</module>
-        <module>chat-gpt</module>
+        <module>chat-core</module>
         <module>chat-llm</module>
         <module>chat-framework</module>
         <module>chat-api</module>
@@ -99,7 +99,7 @@
             <!-- 业务模块 -->
             <dependency>
                 <groupId>com.master.chat</groupId>
-                <artifactId>chat-gpt</artifactId>
+                <artifactId>chat-core</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <!-- 系统模块 -->

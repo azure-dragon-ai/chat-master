@@ -22,6 +22,16 @@ public class RedisConstants implements RedisConstant {
     public static final String LOGIN_TOKEN_KEY = "login_tokens:";
 
     /**
+     * 登录用户 redis key
+     */
+    public static final String LOGIN_TOKEN_ADMIN_KEY = "login_tokens:admin:";
+
+    /**
+     * 登录用户 redis key
+     */
+    public static final String LOGIN_TOKEN_USER_KEY = "login_tokens:user:";
+
+    /**
      * 验证码 redis key
      */
     public static final String CAPTCHA_CODE_KEY = "captcha_codes:";

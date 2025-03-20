@@ -73,6 +73,7 @@ public class LLMService {
                       InternlmClient internlmClient, LangchainClient langchainClient, OllamaClient ollamaClient, CozeClient cozeClient, GiteeClient giteeClient) {
         this.gptService = gptService;
         LLMService.openAiClient = openAiClient;
+        LLMService.deepSeekClient = deepSeekClient;
         LLMService.wenXinClient = wenXinClient;
         LLMService.chatGLMClient = chatGLMClient;
         LLMService.tongYiClient = tongYiClient;

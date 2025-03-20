@@ -6,7 +6,7 @@ import com.github.dozermapper.core.loader.api.BeanMappingBuilder;
 import com.master.chat.common.api.SelectDTO;
 import com.master.chat.common.converter.ToNumberConverter;
 import com.master.chat.common.utils.DozerUtil;
-import com.master.chat.gpt.pojo.vo.AssistantTypeVO;
+import com.master.chat.core.pojo.vo.AssistantTypeVO;
 import com.master.chat.sys.pojo.vo.*;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

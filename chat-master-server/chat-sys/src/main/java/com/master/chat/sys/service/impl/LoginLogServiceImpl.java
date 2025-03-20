@@ -132,7 +132,7 @@ public class LoginLogServiceImpl extends ServiceImpl<LoginLogMapper, LoginLog> i
     public ResponseInfo forceLogout(List<Long> ids) {
         List<LoginLog> loginLogs = loginLogMapper.selectBatchIds(ids);
         loginLogs.stream().forEach(v -> {
-            String key = RedisConstants.LOGIN_TOKEN_KEY + v.getSysUserId() + StringPoolConstant.COLON + v.getSessionId();
+            String key = RedisConstants.LOGIN_TOKEN_ADMIN_KEY + v.getSysUserId() + StringPoolConstant.COLON + v.getSessionId();
             redisUtil.del(key);
             loginLogMapper.disableLoginById(v.getId());
         });

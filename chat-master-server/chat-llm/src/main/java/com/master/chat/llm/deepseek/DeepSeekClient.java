@@ -107,8 +107,11 @@ public class DeepSeekClient implements KeyUpdater {
      */
     @Getter
     private String apiHost;
+    /**
+     * 代理地址
+     */
     @Getter
-    private OpenAiApi openAiApi;
+    private String[] proxyAddress;
     /**
      * 自定义的okHttpClient
      * 如果不自定义 ，就是用sdk默认的OkHttpClient实例
@@ -131,6 +134,9 @@ public class DeepSeekClient implements KeyUpdater {
      */
     @Getter
     private OpenAiAuthInterceptor authInterceptor;
+
+    @Getter
+    private OpenAiApi openAiApi;
 
     /**
      * 默认的分页参数
@@ -164,7 +170,7 @@ public class DeepSeekClient implements KeyUpdater {
         }
         apiKey = builder.apiKey;
         if (StrUtil.isBlank(builder.apiHost)) {
-            builder.apiHost = OpenAIConst.OPENAI_HOST;
+            builder.apiHost = DeepSeekConst.HOST;
         }
         apiHost = builder.apiHost;
         if (Objects.isNull(builder.keyStrategy)) {
@@ -175,8 +181,9 @@ public class DeepSeekClient implements KeyUpdater {
             builder.authInterceptor = new DefaultOpenAiAuthInterceptor();
         }
         authInterceptor = builder.authInterceptor;
+        proxyAddress = builder.proxyAddress;
         if (Objects.isNull(builder.okHttpClient)) {
-            builder.okHttpClient = this.okHttpClient(builder);
+            builder.okHttpClient = this.okHttpClient();
         }
         okHttpClient = builder.okHttpClient;
         this.openAiApi = new Retrofit.Builder()
@@ -191,24 +198,31 @@ public class DeepSeekClient implements KeyUpdater {
     /**
      * 创建默认的OkHttpClient
      */
-    private OkHttpClient okHttpClient(Builder builder) {
+    private OkHttpClient okHttpClient() {
         // 设置apiKeys和key的获取策略
         this.authInterceptor.setApiKey(this.apiKey);
         this.authInterceptor.setKeyStrategy(this.keyStrategy);
         HttpLoggingInterceptor httpLoggingInterceptor = new HttpLoggingInterceptor(new OpenAILogger());
         httpLoggingInterceptor.setLevel(HttpLoggingInterceptor.Level.HEADERS);
-        OkHttpClient okHttpClient = new OkHttpClient.Builder()
-                .addInterceptor(this.authInterceptor)
-                .addInterceptor(httpLoggingInterceptor)
-                .connectTimeout(10, TimeUnit.SECONDS)
-                .writeTimeout(50, TimeUnit.SECONDS)
-                .readTimeout(50, TimeUnit.SECONDS)
-                .build();
+        OkHttpClient okHttpClient;
+        if (ValidatorUtil.isNull(this.okHttpClient)) {
+            okHttpClient = new OkHttpClient.Builder()
+                    .addInterceptor(this.authInterceptor)
+                    .addInterceptor(httpLoggingInterceptor)
+                    .connectTimeout(10, TimeUnit.SECONDS)
+                    .writeTimeout(50, TimeUnit.SECONDS)
+                    .readTimeout(50, TimeUnit.SECONDS)
+                    .build();
+        } else {
+            okHttpClient = this.okHttpClient.newBuilder()
+                    .addInterceptor(this.authInterceptor)
+                    .build();
+        }
         // 如使用代理 使用代理地址
-        if (ValidatorUtil.isNotNullIncludeArray(builder.proxyAddress)) {
+        if (ValidatorUtil.isNotNullIncludeArray(this.proxyAddress)) {
             okHttpClient = okHttpClient
                     .newBuilder()
-                    .proxy(new Proxy(Proxy.Type.HTTP, new InetSocketAddress(builder.proxyAddress[0], Integer.parseInt(builder.proxyAddress[1]))))
+                    .proxy(new Proxy(Proxy.Type.HTTP, new InetSocketAddress(this.proxyAddress[0], Integer.parseInt(this.proxyAddress[1]))))
                     .build();
         }
         return okHttpClient;
@@ -1635,6 +1649,13 @@ public class DeepSeekClient implements KeyUpdater {
     @Override
     public void updateKey(KeyUpdater.KeyModel keyModel) {
         this.setApiKey(Collections.singletonList(keyModel.getAppKey()));
+        this.okHttpClient = this.okHttpClient();
+        this.openAiApi = new Retrofit.Builder()
+                .baseUrl(apiHost)
+                .client(okHttpClient)
+                .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
+                .addConverterFactory(JacksonConverterFactory.create())
+                .build().create(OpenAiApi.class);
     }
 
     public static final class Builder {

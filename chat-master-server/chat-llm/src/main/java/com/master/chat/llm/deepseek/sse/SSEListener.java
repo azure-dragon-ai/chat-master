@@ -169,7 +169,7 @@ public class SSEListener extends EventSourceListener {
         }
         ChatData chatData = ChatData.builder().id(conversationId).conversationId(conversationId)
                 .parentMessageId(parentMessageId)
-                .role(ChatRoleEnum.ASSISTANT.getValue()).content("OpenAI大模型接口请求失败，无法响应！").contentType(ChatContentEnum.TEXT.getValue()).build();
+                .role(ChatRoleEnum.ASSISTANT.getValue()).content("DeepSeek接口请求失败，无法响应！").contentType(ChatContentEnum.TEXT.getValue()).build();
         this.error = true;
         this.errTxt = "DeepSeek大模型接口连接异常";
         this.response.getWriter().write(JSON.toJSONString(chatData));

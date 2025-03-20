@@ -112,7 +112,7 @@ public class LoginController extends BaseController {
     private void saveLoginLog(String token) {
         UserDetail userDetail = JwtTokenUtils.getLoginUser();
         String allLogin = redisUtil.get(RedisConstants.SYS_CONFIG_KEY + SysConfigConstants.ALL_LOGIN);
-        String key = RedisConstants.LOGIN_TOKEN_KEY + userDetail.getId() + StringPoolConstant.COLON;
+        String key = RedisConstants.LOGIN_TOKEN_ADMIN_KEY + userDetail.getId() + StringPoolConstant.COLON;
         if (StringPoolConstant.FALSE.equalsIgnoreCase(allLogin)) {
             Set<String> keys = redisUtil.getKeys(key + StringPoolConstant.ASTERISK);
             redisUtil.del(keys);
@@ -139,7 +139,7 @@ public class LoginController extends BaseController {
         }
         try {
             UserDetail userDetail = JwtTokenUtils.getUserDetailFromToken(token);
-            String key = RedisConstants.LOGIN_TOKEN_KEY + userDetail.getId() + StringPoolConstant.COLON;
+            String key = RedisConstants.LOGIN_TOKEN_ADMIN_KEY + userDetail.getId() + StringPoolConstant.COLON;
             redisUtil.del(key + userDetail.getSessionId());
             loginLogService.disableLogin(userDetail.getId(), userDetail.getSessionId());
             return ResponseInfo.success();

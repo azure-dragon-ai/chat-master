@@ -38,7 +38,6 @@ public class DeepSeekServiceImpl implements ModelService {
     private static DeepSeekClient deepSeekClient;
 
     public DeepSeekServiceImpl(DeepSeekClient deepSeekClient) {
-        DeepSeekServiceImpl.deepSeekClient = new DeepSeekClient();
         DeepSeekServiceImpl.deepSeekClient = deepSeekClient;
     }
 
