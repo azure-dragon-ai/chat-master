@@ -5,17 +5,16 @@ import com.master.chat.client.enums.ChatModelEnum;
 import com.master.chat.client.enums.ChatStatusEnum;
 import com.master.chat.client.model.command.ChatMessageCommand;
 import com.master.chat.client.model.dto.ChatMessageDTO;
+import com.master.chat.common.exception.BusinessException;
+import com.master.chat.framework.validator.ValidatorUtil;
 import com.master.chat.llm.base.exception.LLMException;
 import com.master.chat.llm.base.service.ModelService;
 import com.master.chat.llm.openai.OpenAiClient;
-import com.master.chat.llm.openai.OpenAiStreamClient;
 import com.master.chat.llm.openai.entity.chat.ChatChoice;
 import com.master.chat.llm.openai.entity.chat.ChatCompletion;
 import com.master.chat.llm.openai.entity.chat.ChatCompletionResponse;
 import com.master.chat.llm.openai.entity.chat.Message;
 import com.master.chat.llm.openai.listener.SSEListener;
-import com.master.chat.common.exception.BusinessException;
-import com.master.chat.framework.validator.ValidatorUtil;
 import lombok.SneakyThrows;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -36,11 +35,9 @@ import java.util.List;
 @Service
 public class OpenAIServiceImpl implements ModelService {
     private static OpenAiClient openAiClient;
-    private static OpenAiStreamClient openAiStreamClient;
 
-    public OpenAIServiceImpl(OpenAiClient openAiClient, OpenAiStreamClient openAiStreamClient) {
+    public OpenAIServiceImpl(OpenAiClient openAiClient) {
         OpenAIServiceImpl.openAiClient = openAiClient;
-        OpenAIServiceImpl.openAiStreamClient = openAiStreamClient;
     }
 
     @Override
@@ -77,7 +74,7 @@ public class OpenAIServiceImpl implements ModelService {
     @SneakyThrows
     public Boolean streamChat(HttpServletResponse response, SseEmitter sseEmitter, List<ChatMessageDTO> chatMessages, Boolean isWs, Boolean isDraw,
                               Long chatId, String conversationId, String prompt, String version, String uid) {
-        if (ValidatorUtil.isNullIncludeArray(openAiStreamClient.getApiKey())) {
+        if (ValidatorUtil.isNullIncludeArray(openAiClient.getApiKey())) {
             throw new BusinessException("未加载到密钥信息");
         }
         List<Message> messages = new ArrayList<>();
@@ -91,7 +88,7 @@ public class OpenAIServiceImpl implements ModelService {
                 .messages(messages)
                 .model(ValidatorUtil.isNotNull(version) ? version : ChatCompletion.Model.GPT_3_5_TURBO_0613.getName())
                 .build();
-        openAiStreamClient.streamChatCompletion(completion, sseListener);
+        openAiClient.streamChatCompletion(completion, sseListener);
         if (isWs) {
             return false;
         }

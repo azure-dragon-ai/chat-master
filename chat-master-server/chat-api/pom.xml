@@ -29,7 +29,7 @@
         <!-- 核心模块  -->
         <dependency>
             <groupId>com.master.chat</groupId>
-            <artifactId>chat-gpt</artifactId>
+            <artifactId>chat-core</artifactId>
         </dependency>
         <!-- llm模块  -->
         <dependency>

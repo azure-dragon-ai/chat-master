@@ -1,9 +1,10 @@
 package com.master.chat.api.security;
 
 import cn.hutool.core.lang.UUID;
-import com.master.chat.gpt.pojo.vo.UserVO;
-import com.master.chat.sys.pojo.vo.SysUserVO;
+import com.master.chat.common.enums.AccountEnum;
 import com.master.chat.common.enums.IntegerEnum;
+import com.master.chat.core.pojo.vo.UserVO;
+import com.master.chat.sys.pojo.vo.SysUserVO;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
@@ -90,7 +91,7 @@ public class UserDetail implements UserDetails {
         this.setSessionId(UUID.randomUUID().toString());
         this.setUsername(sysUser.getUsername());
         this.setPassword(sysUser.getPassword());
-        this.setRole(1);
+        this.setRole(AccountEnum.ADMIN.getValue());
         this.setAdmind(sysUser.getAdmind());
         this.setEnabled(IntegerEnum.ONE.getValue().equals(sysUser.getStatus()));
         this.permissions = permissions;
@@ -112,7 +113,7 @@ public class UserDetail implements UserDetails {
         this.setSessionId(UUID.randomUUID().toString());
         this.setUsername(user.getTel());
         this.setPassword(user.getPassword());
-        this.setRole(2);
+        this.setRole(AccountEnum.USER.getValue());
         this.setAdmind(true);
         this.setEnabled(true);
     }

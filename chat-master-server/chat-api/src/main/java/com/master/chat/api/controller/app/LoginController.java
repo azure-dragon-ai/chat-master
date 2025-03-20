@@ -3,18 +3,18 @@ package com.master.chat.api.controller.app;
 import com.master.chat.api.security.JwtTokenUtils;
 import com.master.chat.api.security.Oauth2Token;
 import com.master.chat.api.security.UserDetail;
-import com.master.chat.common.constant.RedisConstants;
-import com.master.chat.common.constant.SysConfigConstants;
-import com.master.chat.framework.util.RedisUtils;
-import com.master.chat.gpt.enums.UserTypeEnum;
-import com.master.chat.gpt.pojo.vo.UserVO;
-import com.master.chat.gpt.service.IUserService;
-import com.master.chat.sys.pojo.command.LoginCommand;
 import com.master.chat.common.api.ResponseInfo;
 import com.master.chat.common.constant.AuthConstant;
+import com.master.chat.common.constant.RedisConstants;
 import com.master.chat.common.constant.StringPoolConstant;
+import com.master.chat.common.constant.SysConfigConstants;
 import com.master.chat.common.enums.ResponseEnum;
+import com.master.chat.framework.util.RedisUtils;
 import com.master.chat.framework.validator.ValidatorUtil;
+import com.master.chat.core.enums.UserTypeEnum;
+import com.master.chat.core.pojo.vo.UserVO;
+import com.master.chat.core.service.IUserService;
+import com.master.chat.sys.pojo.command.LoginCommand;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -112,7 +112,7 @@ public class LoginController {
     private void saveLoginLog(String token) {
         UserDetail userDetail = JwtTokenUtils.getLoginUser();
         String allLogin = redisUtils.get(RedisConstants.SYS_CONFIG_KEY + SysConfigConstants.ALL_LOGIN);
-        String key = RedisConstants.LOGIN_TOKEN_KEY + userDetail.getId() + StringPoolConstant.COLON;
+        String key = RedisConstants.LOGIN_TOKEN_USER_KEY + userDetail.getId() + StringPoolConstant.COLON;
         if (StringPoolConstant.FALSE.equalsIgnoreCase(allLogin)) {
             Set<String> keys = redisUtils.getKeys(key + StringPoolConstant.ASTERISK);
             redisUtils.del(keys);

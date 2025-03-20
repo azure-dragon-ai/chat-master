@@ -1,8 +1,8 @@
 package com.master.chat.framework.config;
 
 import com.master.chat.common.constant.Constants;
-import com.master.chat.framework.interceptor.BaseRepeatSubmitInterceptor;
 import com.master.chat.common.constant.HttpConstant;
+import com.master.chat.framework.interceptor.BaseRepeatSubmitInterceptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;

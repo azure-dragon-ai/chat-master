@@ -2,8 +2,10 @@ package com.master.chat.llm.chatglm;
 
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSON;
+import com.master.chat.client.enums.ChatModelEnum;
+import com.master.chat.common.exception.ValidateException;
+import com.master.chat.llm.base.key.KeyUpdater;
 import com.master.chat.llm.chatglm.listener.SSEListener;
-import com.master.chat.common.exception.BusinessException;
 import com.zhipu.oapi.ClientV4;
 import com.zhipu.oapi.Constants;
 import com.zhipu.oapi.service.v4.image.CreateImageRequest;
@@ -31,7 +33,7 @@ import java.util.Map;
  */
 @Slf4j
 @NoArgsConstructor(force = true)
-public class ChatGLMClient {
+public class ChatGLMClient implements KeyUpdater {
     private static final String requestIdTemplate = "master-%d";
     @Getter
     @Setter
@@ -47,7 +49,7 @@ public class ChatGLMClient {
 
     private ChatGLMClient(Builder builder) {
         if (StrUtil.isBlank(builder.appKey)) {
-            throw new BusinessException("构造错误: accessToken不能为空");
+            throw new ValidateException("构造错误: accessToken不能为空");
         }
         appKey = builder.appKey;
         appSecret = builder.appSecret;
@@ -63,7 +65,6 @@ public class ChatGLMClient {
      * 同步响应
      *
      * @param request
-     * @param eventSourceListener
      */
     public ModelApiResponse chat(ChatCompletionRequest request) {
         // 插件调用
@@ -84,7 +85,6 @@ public class ChatGLMClient {
      * 流式响应
      *
      * @param request
-     * @param query
      */
     public Boolean streamChat(HttpServletResponse response, ChatCompletionRequest request, Long chatId, String parentMessageId, String version, String uid, Boolean isWs) {
         request.setStream(Boolean.TRUE);
@@ -137,6 +137,27 @@ public class ChatGLMClient {
         request.setTools(chatToolList);
         request.setToolChoice("auto");
         return request;
+    }
+
+
+    @Override
+    public String supportModel() {
+        return ChatModelEnum.CHATGLM.getValue();
+    }
+
+    @Override
+    public void updateKey(KeyModel keyModel) {
+        if (StrUtil.isBlank(keyModel.getAppKey())) {
+            throw new ValidateException("构造错误: accessToken不能为空");
+        }
+        this.appKey = keyModel.getAppKey();
+        this.appSecret = keyModel.getAppSecret();
+        this.apiSecretKey = keyModel.getAppKey();
+        if (StrUtil.isNotBlank(this.apiSecretKey) && StrUtil.isBlank(this.appSecret)) {
+            this.clientV4 = new ClientV4.Builder(apiSecretKey).build();
+        } else {
+            this.clientV4 = new ClientV4.Builder(appKey, appSecret).build();
+        }
     }
 
     /**

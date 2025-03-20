@@ -1,14 +1,15 @@
 package com.master.chat.api.security;
 
 import com.alibaba.fastjson.JSON;
-import com.master.chat.common.constant.RedisConstants;
-import com.master.chat.framework.util.RedisUtils;
 import com.master.chat.common.api.ResponseInfo;
 import com.master.chat.common.constant.AuthConstant;
 import com.master.chat.common.constant.HttpConstant;
+import com.master.chat.common.constant.RedisConstants;
 import com.master.chat.common.constant.StringPoolConstant;
+import com.master.chat.common.enums.AccountEnum;
 import com.master.chat.common.exception.ValidateException;
 import com.master.chat.framework.util.ApplicationContextUtil;
+import com.master.chat.framework.util.RedisUtils;
 import com.master.chat.framework.validator.ValidatorUtil;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
@@ -78,12 +79,15 @@ public class JwtAuthenticationFilter extends BasicAuthenticationFilter {
         }
         UserDetail userDetail = JwtTokenUtils.getUserDetail(authentication);
         // 判断redis中是否存在该token
-        if (ValidatorUtil.isNotNull(authentication) && ValidatorUtil.isNull(redisUtil.get(RedisConstants.LOGIN_TOKEN_KEY + userDetail.getId() + StringPoolConstant.COLON + userDetail.getSessionId()))) {
-            flag = true;
-            responseInfo = ResponseInfo.unauthorized("token已失效，请重新登录");
+        if (ValidatorUtil.isNotNull(authentication)) {
+            String key = AccountEnum.ADMIN.getValue().equals(userDetail.getRole()) ? RedisConstants.LOGIN_TOKEN_ADMIN_KEY : RedisConstants.LOGIN_TOKEN_USER_KEY;
+            if (ValidatorUtil.isNull(redisUtil.get(key + userDetail.getId() + StringPoolConstant.COLON + userDetail.getSessionId()))) {
+                flag = true;
+                responseInfo = ResponseInfo.unauthorized("token已失效，请重新登录");
+            }
         }
+        // 未登录或者token失效返回
         if (ValidatorUtil.isNull(authentication) || flag) {
-            // 生成并返回token给客户端，后续访问携带此token
             response.getWriter().print(JSON.toJSONString(responseInfo));
             response.getWriter().flush();
             response.getWriter().close();

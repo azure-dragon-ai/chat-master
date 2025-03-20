@@ -1,14 +1,14 @@
 package com.master.chat.api.controller.gpt;
 
-import com.master.chat.api.base.BaseController;
-import com.master.chat.gpt.pojo.vo.ChatVO;
-import com.master.chat.gpt.service.IChatService;
-import com.master.chat.sys.constant.SysLogTypeConstant;
+import com.master.chat.api.controller.base.BaseController;
+import com.master.chat.client.model.dto.Query;
 import com.master.chat.common.annotation.Log;
 import com.master.chat.common.api.IPageInfo;
-import com.master.chat.client.model.dto.Query;
 import com.master.chat.common.api.ResponseInfo;
 import com.master.chat.common.enums.BusinessTypeEnum;
+import com.master.chat.core.pojo.vo.ChatVO;
+import com.master.chat.core.service.IChatService;
+import com.master.chat.sys.constant.SysLogTypeConstant;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;

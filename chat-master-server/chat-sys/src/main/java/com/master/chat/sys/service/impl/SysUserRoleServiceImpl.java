@@ -2,15 +2,15 @@ package com.master.chat.sys.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.master.chat.common.api.ResponseInfo;
+import com.master.chat.common.enums.StatusEnum;
+import com.master.chat.framework.validator.ValidatorUtil;
 import com.master.chat.sys.mapper.SysUserMapper;
 import com.master.chat.sys.mapper.SysUserRoleMapper;
 import com.master.chat.sys.pojo.dto.SysUserRolesDTO;
 import com.master.chat.sys.pojo.entity.SysUser;
 import com.master.chat.sys.pojo.entity.SysUserRole;
 import com.master.chat.sys.service.ISysUserRoleService;
-import com.master.chat.common.api.ResponseInfo;
-import com.master.chat.common.enums.StatusEnum;
-import com.master.chat.framework.validator.ValidatorUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

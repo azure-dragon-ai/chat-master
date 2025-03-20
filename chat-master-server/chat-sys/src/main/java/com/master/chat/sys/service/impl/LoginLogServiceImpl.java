@@ -9,22 +9,23 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.master.chat.client.model.dto.Query;
+import com.master.chat.common.api.IPageInfo;
+import com.master.chat.common.api.ResponseInfo;
 import com.master.chat.common.constant.RedisConstants;
+import com.master.chat.common.constant.StringPoolConstant;
+import com.master.chat.common.enums.StatusEnum;
+import com.master.chat.common.utils.DateUtil;
+import com.master.chat.common.utils.DozerUtil;
 import com.master.chat.framework.util.AddressUtil;
 import com.master.chat.framework.util.ApplicationContextUtil;
 import com.master.chat.framework.util.IPUtil;
 import com.master.chat.framework.util.RedisUtils;
+import com.master.chat.framework.validator.ValidatorUtil;
 import com.master.chat.sys.mapper.LoginLogMapper;
 import com.master.chat.sys.pojo.entity.LoginLog;
 import com.master.chat.sys.pojo.vo.LoginLogVO;
 import com.master.chat.sys.service.ILoginLogService;
-import com.master.chat.common.api.IPageInfo;
-import com.master.chat.client.model.dto.Query;
-import com.master.chat.common.api.ResponseInfo;
-import com.master.chat.common.constant.StringPoolConstant;
-import com.master.chat.common.enums.StatusEnum;
-import com.master.chat.common.utils.*;
-import com.master.chat.framework.validator.ValidatorUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -131,7 +132,7 @@ public class LoginLogServiceImpl extends ServiceImpl<LoginLogMapper, LoginLog> i
     public ResponseInfo forceLogout(List<Long> ids) {
         List<LoginLog> loginLogs = loginLogMapper.selectBatchIds(ids);
         loginLogs.stream().forEach(v -> {
-            String key = RedisConstants.LOGIN_TOKEN_KEY + v.getSysUserId() + StringPoolConstant.COLON + v.getSessionId();
+            String key = RedisConstants.LOGIN_TOKEN_ADMIN_KEY + v.getSysUserId() + StringPoolConstant.COLON + v.getSessionId();
             redisUtil.del(key);
             loginLogMapper.disableLoginById(v.getId());
         });

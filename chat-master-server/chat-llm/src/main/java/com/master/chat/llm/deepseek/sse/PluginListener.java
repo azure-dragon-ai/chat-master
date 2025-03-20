@@ -1,7 +1,7 @@
 package com.master.chat.llm.deepseek.sse;
 
 import cn.hutool.json.JSONUtil;
-import com.master.chat.llm.deepseek.DeepSeekStreamClient;
+import com.master.chat.llm.deepseek.DeepSeekClient;
 import com.master.chat.llm.openai.entity.chat.ChatCompletion;
 import com.master.chat.llm.openai.entity.chat.ChatCompletionResponse;
 import com.master.chat.llm.openai.entity.chat.FunctionCall;
@@ -36,7 +36,7 @@ public abstract class PluginListener<R extends PluginParam, T> extends EventSour
         return this.arguments;
     }
 
-    private DeepSeekStreamClient client;
+    private DeepSeekClient client;
     private EventSourceListener eventSourceListener;
     private PluginAbstract<R, T> plugin;
     private ChatCompletion chatCompletion;
@@ -49,7 +49,7 @@ public abstract class PluginListener<R extends PluginParam, T> extends EventSour
      * @param plugin              插件信息
      * @param chatCompletion      请求参数
      */
-    public PluginListener(DeepSeekStreamClient client, EventSourceListener eventSourceListener, PluginAbstract<R, T> plugin, ChatCompletion chatCompletion) {
+    public PluginListener(DeepSeekClient client, EventSourceListener eventSourceListener, PluginAbstract<R, T> plugin, ChatCompletion chatCompletion) {
         this.client = client;
         this.eventSourceListener = eventSourceListener;
         this.plugin = plugin;

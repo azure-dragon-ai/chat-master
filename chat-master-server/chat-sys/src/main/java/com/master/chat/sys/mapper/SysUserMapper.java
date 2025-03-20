@@ -2,10 +2,10 @@ package com.master.chat.sys.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.master.chat.client.model.dto.Query;
 import com.master.chat.sys.pojo.entity.SysUser;
 import com.master.chat.sys.pojo.vo.ContactUserVO;
 import com.master.chat.sys.pojo.vo.SysUserVO;
-import com.master.chat.client.model.dto.Query;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;

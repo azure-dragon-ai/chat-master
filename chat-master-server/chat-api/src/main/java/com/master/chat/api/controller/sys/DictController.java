@@ -1,6 +1,11 @@
 package com.master.chat.api.controller.sys;
 
-import com.master.chat.api.base.BaseController;
+import com.master.chat.api.controller.base.BaseController;
+import com.master.chat.client.model.dto.Query;
+import com.master.chat.common.annotation.Log;
+import com.master.chat.common.api.IPageInfo;
+import com.master.chat.common.api.ResponseInfo;
+import com.master.chat.common.enums.BusinessTypeEnum;
 import com.master.chat.sys.constant.SysLogTypeConstant;
 import com.master.chat.sys.pojo.command.DictCommand;
 import com.master.chat.sys.pojo.command.DictTypeCommand;
@@ -8,11 +13,6 @@ import com.master.chat.sys.pojo.vo.DictTypeVO;
 import com.master.chat.sys.pojo.vo.DictVO;
 import com.master.chat.sys.service.IDictService;
 import com.master.chat.sys.service.IDictTypeService;
-import com.master.chat.common.annotation.Log;
-import com.master.chat.common.api.IPageInfo;
-import com.master.chat.client.model.dto.Query;
-import com.master.chat.common.api.ResponseInfo;
-import com.master.chat.common.enums.BusinessTypeEnum;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;

@@ -1,7 +1,7 @@
 package com.master.chat.client.model.command;
 
-import com.master.chat.common.api.CommonCommand;
 import com.master.chat.client.model.dto.Query;
+import com.master.chat.common.api.CommonCommand;
 import lombok.Data;
 
 import javax.validation.constraints.NotBlank;

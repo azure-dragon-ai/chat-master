@@ -1,3 +1,20 @@
+## v1.2.2
+
+`2025-03-18`
+
+> [chat-master](https://gitee.com/panday94/chat-master)
+
+## Enhancement
+
+- 密钥自动更新功能优化
+- 优化llm初始化代码，优化openai及deepseek初始化代码
+- 将Java中chat-gpt模块更改为chat-core模块
+- 增加Dify接口。
+
+## BugFix
+- 前端用户/后端用户同时登录问题，区分前台用户token和后台用户token
+
+
 ## v1.2.1
 
 `2025-03-02`

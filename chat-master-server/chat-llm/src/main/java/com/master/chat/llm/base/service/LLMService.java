@@ -16,7 +16,7 @@ import com.master.chat.llm.base.entity.ChatData;
 import com.master.chat.llm.base.exception.LLMException;
 import com.master.chat.llm.base.service.impl.*;
 import com.master.chat.llm.chatglm.ChatGLMClient;
-import com.master.chat.llm.deepseek.DeepSeekStreamClient;
+import com.master.chat.llm.deepseek.DeepSeekClient;
 import com.master.chat.llm.doubao.DouBaoClient;
 import com.master.chat.llm.internlm.InternlmClient;
 import com.master.chat.llm.locallm.coze.CozeClient;
@@ -25,7 +25,6 @@ import com.master.chat.llm.locallm.langchain.LangchainClient;
 import com.master.chat.llm.locallm.ollama.OllamaClient;
 import com.master.chat.llm.moonshot.MoonshotClient;
 import com.master.chat.llm.openai.OpenAiClient;
-import com.master.chat.llm.openai.OpenAiStreamClient;
 import com.master.chat.llm.spark.SparkClient;
 import com.master.chat.llm.tongyi.TongYiClient;
 import com.master.chat.llm.wenxin.WenXinClient;
@@ -54,34 +53,32 @@ public class LLMService {
     private static final String[] drawingWords = {"画画", "作画", "画图", "绘画", "描绘"};
     private static final String[] drawingInstructions = {"请画", "画一", "画个",};
     private static OpenAiClient openAiClient;
-    private static OpenAiStreamClient openAiStreamClient;
+    private static DeepSeekClient deepSeekClient;
     private static WenXinClient wenXinClient;
     private static ChatGLMClient chatGLMClient;
     private static TongYiClient tongYiClient;
     private static SparkClient sparkClient;
     private static MoonshotClient moonshotClient;
-    private static DeepSeekStreamClient deepSeekStreamClient;
     private static DouBaoClient douBaoClient;
     private static InternlmClient internlmClient;
     private static LangchainClient langchainClient;
     private static OllamaClient ollamaClient;
     private static CozeClient cozeClient;
-    private final GptService gptService;
     private static GiteeClient giteeClient;
+    private final GptService gptService;
 
     @Autowired
-    public LLMService(GptService gptService, OpenAiClient openAiClient, OpenAiStreamClient openAiStreamClient, WenXinClient wenXinClient,
-                      ChatGLMClient chatGLMClient, TongYiClient tongYiClient, SparkClient sparkClient, MoonshotClient moonshotClient, DeepSeekStreamClient deepSeekStreamClient,
-                      DouBaoClient douBaoClient, InternlmClient internlmClient, LangchainClient langchainClient, OllamaClient ollamaClient, CozeClient cozeClient, GiteeClient giteeClient) {
+    public LLMService(GptService gptService, OpenAiClient openAiClient, DeepSeekClient deepSeekClient, WenXinClient wenXinClient,
+                      ChatGLMClient chatGLMClient, TongYiClient tongYiClient, SparkClient sparkClient, MoonshotClient moonshotClient, DouBaoClient douBaoClient,
+                      InternlmClient internlmClient, LangchainClient langchainClient, OllamaClient ollamaClient, CozeClient cozeClient, GiteeClient giteeClient) {
         this.gptService = gptService;
         LLMService.openAiClient = openAiClient;
-        LLMService.openAiStreamClient = openAiStreamClient;
+        LLMService.deepSeekClient = deepSeekClient;
         LLMService.wenXinClient = wenXinClient;
         LLMService.chatGLMClient = chatGLMClient;
         LLMService.tongYiClient = tongYiClient;
         LLMService.sparkClient = sparkClient;
         LLMService.moonshotClient = moonshotClient;
-        LLMService.deepSeekStreamClient = deepSeekStreamClient;
         LLMService.douBaoClient = douBaoClient;
         LLMService.internlmClient = internlmClient;
         LLMService.langchainClient = langchainClient;
@@ -146,7 +143,9 @@ public class LLMService {
     private ModelService getLLM(ChatModelEnum model) {
         switch (model) {
             case OPENAI:
-                return new OpenAIServiceImpl(openAiClient, openAiStreamClient);
+                return new OpenAIServiceImpl(openAiClient);
+            case DEEPSEEK:
+                return new DeepSeekServiceImpl(deepSeekClient);
             case WENXIN:
                 return new WenXinServiceImpl(gptService, wenXinClient);
             case TONGYI:
@@ -159,8 +158,6 @@ public class LLMService {
                 return new InternLMServiceImpl(internlmClient);
             case MOONSHOT:
                 return new MoonshotServiceImpl(moonshotClient);
-            case DEEPSEEK:
-                return new DeepSeekServiceImpl(deepSeekStreamClient);
             case DOUBAO:
                 return new DouBaoServiceImpl(douBaoClient);
             case LOCALLM:

@@ -2,7 +2,13 @@ package com.master.chat.llm.openai;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.http.ContentType;
 import cn.hutool.json.JSONUtil;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.master.chat.client.enums.ChatModelEnum;
+import com.master.chat.framework.validator.ValidatorUtil;
+import com.master.chat.llm.base.key.KeyUpdater;
 import com.master.chat.llm.openai.constant.OpenAIConst;
 import com.master.chat.llm.openai.entity.Tts.TextToSpeech;
 import com.master.chat.llm.openai.entity.assistant.message.MessageFileResponse;
@@ -15,9 +21,7 @@ import com.master.chat.llm.openai.entity.assistant.thread.ThreadResponse;
 import com.master.chat.llm.openai.entity.billing.BillingUsage;
 import com.master.chat.llm.openai.entity.billing.CreditGrantsResponse;
 import com.master.chat.llm.openai.entity.billing.Subscription;
-import com.master.chat.llm.openai.entity.chat.ChatChoice;
-import com.master.chat.llm.openai.entity.chat.ChatCompletion;
-import com.master.chat.llm.openai.entity.chat.Message;
+import com.master.chat.llm.openai.entity.chat.*;
 import com.master.chat.llm.openai.entity.common.DeleteResponse;
 import com.master.chat.llm.openai.entity.common.OpenAiResponse;
 import com.master.chat.llm.openai.entity.common.PageRequest;
@@ -54,24 +58,31 @@ import com.master.chat.llm.openai.function.KeyRandomStrategy;
 import com.master.chat.llm.openai.function.KeyStrategyFunction;
 import com.master.chat.llm.openai.interceptor.DefaultOpenAiAuthInterceptor;
 import com.master.chat.llm.openai.interceptor.DynamicKeyOpenAiAuthInterceptor;
+import com.master.chat.llm.openai.interceptor.OpenAILogger;
 import com.master.chat.llm.openai.interceptor.OpenAiAuthInterceptor;
 import com.master.chat.llm.openai.plugin.PluginAbstract;
 import com.master.chat.llm.openai.plugin.PluginParam;
+import com.master.chat.llm.openai.sse.ConsoleEventSourceListener;
+import com.master.chat.llm.openai.sse.DefaultPluginListener;
+import com.master.chat.llm.openai.sse.PluginListener;
 import com.master.chat.llm.openai.utils.SSEUtil;
 import io.reactivex.Single;
-import lombok.Data;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
+import okhttp3.logging.HttpLoggingInterceptor;
+import okhttp3.sse.EventSource;
 import okhttp3.sse.EventSourceListener;
+import okhttp3.sse.EventSources;
 import org.jetbrains.annotations.NotNull;
-import retrofit2.Call;
-import retrofit2.Callback;
 import retrofit2.Retrofit;
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
 import retrofit2.converter.jackson.JacksonConverterFactory;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.Proxy;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -80,12 +91,9 @@ import java.util.concurrent.TimeUnit;
  * 描述： open ai 客户端
  */
 @Slf4j
-@Data
-public class OpenAiClient {
-    /**
-     * keys
-     */
+public class OpenAiClient implements KeyUpdater {
     @Getter
+    @Setter
     @NotNull
     private List<String> apiKey;
     /**
@@ -93,14 +101,18 @@ public class OpenAiClient {
      */
     @Getter
     private String apiHost;
+    /**
+     * 代理地址
+     */
     @Getter
-    private OpenAiApi openAiApi;
+    private String[] proxyAddress;
     /**
      * 自定义的okHttpClient
      * 如果不自定义 ，就是用sdk默认的OkHttpClient实例
      */
     @Getter
     private OkHttpClient okHttpClient;
+
     /**
      * api key的获取策略
      */
@@ -118,6 +130,9 @@ public class OpenAiClient {
     @Getter
     private OpenAiAuthInterceptor authInterceptor;
 
+    @Getter
+    private OpenAiApi openAiApi;
+
     /**
      * 默认的分页参数
      */
@@ -127,20 +142,11 @@ public class OpenAiClient {
     @Getter
     private static final Headers assistantsHeader = Headers.of("OpenAI-Beta", "assistants=v1");
 
-    /**
-     * 构造器
-     *
-     * @return OpenAiClient.Builder
-     */
-    public static Builder builder() {
-        return new Builder();
-    }
-
     public OpenAiClient() {
     }
 
     /**
-     * 构造
+     * 构造实例对象
      *
      * @param builder
      */
@@ -149,32 +155,21 @@ public class OpenAiClient {
             throw new BaseException(CommonError.API_KEYS_NOT_NUL);
         }
         apiKey = builder.apiKey;
-
         if (StrUtil.isBlank(builder.apiHost)) {
             builder.apiHost = OpenAIConst.OPENAI_HOST;
         }
         apiHost = builder.apiHost;
-
         if (Objects.isNull(builder.keyStrategy)) {
             builder.keyStrategy = new KeyRandomStrategy();
         }
         keyStrategy = builder.keyStrategy;
-
         if (Objects.isNull(builder.authInterceptor)) {
             builder.authInterceptor = new DefaultOpenAiAuthInterceptor();
         }
         authInterceptor = builder.authInterceptor;
-        authInterceptor.setApiKey(this.apiKey);
-        authInterceptor.setKeyStrategy(this.keyStrategy);
-
+        proxyAddress = builder.proxyAddress;
         if (Objects.isNull(builder.okHttpClient)) {
             builder.okHttpClient = this.okHttpClient();
-        } else {
-            //自定义的okhttpClient  需要增加api keys
-            builder.okHttpClient = builder.okHttpClient
-                    .newBuilder()
-                    .addInterceptor(authInterceptor)
-                    .build();
         }
         okHttpClient = builder.okHttpClient;
         this.openAiApi = new Retrofit.Builder()
@@ -185,24 +180,37 @@ public class OpenAiClient {
                 .build().create(OpenAiApi.class);
     }
 
-
     /**
-     * 创建默认OkHttpClient
-     *
-     * @return
+     * 创建默认的OkHttpClient
      */
     private OkHttpClient okHttpClient() {
-        if (Objects.isNull(this.authInterceptor)) {
-            this.authInterceptor = new DefaultOpenAiAuthInterceptor();
-        }
+        // 设置apiKeys和key的获取策略
         this.authInterceptor.setApiKey(this.apiKey);
         this.authInterceptor.setKeyStrategy(this.keyStrategy);
-        return new OkHttpClient
-                .Builder()
-                .addInterceptor(this.authInterceptor)
-                .connectTimeout(30, TimeUnit.SECONDS)
-                .writeTimeout(30, TimeUnit.SECONDS)
-                .readTimeout(30, TimeUnit.SECONDS).build();
+        HttpLoggingInterceptor httpLoggingInterceptor = new HttpLoggingInterceptor(new OpenAILogger());
+        httpLoggingInterceptor.setLevel(HttpLoggingInterceptor.Level.HEADERS);
+        OkHttpClient okHttpClient;
+        if (ValidatorUtil.isNull(this.okHttpClient)) {
+            okHttpClient = new OkHttpClient.Builder()
+                    .addInterceptor(this.authInterceptor)
+                    .addInterceptor(httpLoggingInterceptor)
+                    .connectTimeout(10, TimeUnit.SECONDS)
+                    .writeTimeout(50, TimeUnit.SECONDS)
+                    .readTimeout(50, TimeUnit.SECONDS)
+                    .build();
+        } else {
+            okHttpClient = this.okHttpClient.newBuilder()
+                    .addInterceptor(this.authInterceptor)
+                    .build();
+        }
+        // 如使用代理 使用代理地址
+        if (ValidatorUtil.isNotNullIncludeArray(this.proxyAddress)) {
+            okHttpClient = okHttpClient
+                    .newBuilder()
+                    .proxy(new Proxy(Proxy.Type.HTTP, new InetSocketAddress(this.proxyAddress[0], Integer.parseInt(this.proxyAddress[1]))))
+                    .build();
+        }
+        return okHttpClient;
     }
 
     /**
@@ -1018,8 +1026,8 @@ public class OpenAiClient {
      * @param callback     返回值接收
      * @since 1.1.2
      */
-    public void textToSpeech(TextToSpeech textToSpeech, Callback callback) {
-        Call<ResponseBody> responseBody = this.openAiApi.textToSpeech(textToSpeech);
+    public void textToSpeech(TextToSpeech textToSpeech, retrofit2.Callback callback) {
+        retrofit2.Call<ResponseBody> responseBody = this.openAiApi.textToSpeech(textToSpeech);
         responseBody.enqueue(callback);
     }
 
@@ -1030,7 +1038,7 @@ public class OpenAiClient {
      * @since 1.1.3
      */
     public ResponseBody textToSpeech(TextToSpeech textToSpeech) throws IOException {
-        Call<ResponseBody> responseBody = this.openAiApi.textToSpeech(textToSpeech);
+        retrofit2.Call<ResponseBody> responseBody = this.openAiApi.textToSpeech(textToSpeech);
         return responseBody.execute().body();
     }
 
@@ -1428,11 +1436,224 @@ public class OpenAiClient {
                 pageRequest.getAfter()).blockingGet();
     }
 
+    /**
+     * 问答接口 stream 形式
+     *
+     * @param completion          open ai 参数
+     * @param eventSourceListener sse监听器
+     * @see ConsoleEventSourceListener
+     */
+    public void streamCompletions(Completion completion, EventSourceListener eventSourceListener) {
+        if (Objects.isNull(eventSourceListener)) {
+            log.error("参数异常：EventSourceListener不能为空，可以参考：com.master.chat.llm.openai.sse.ConsoleEventSourceListener");
+            throw new BaseException(CommonError.PARAM_ERROR);
+        }
+        if (StrUtil.isBlank(completion.getPrompt())) {
+            log.error("参数异常：Prompt不能为空");
+            throw new BaseException(CommonError.PARAM_ERROR);
+        }
+        if (!completion.isStream()) {
+            completion.setStream(true);
+        }
+        try {
+            EventSource.Factory factory = EventSources.createFactory(this.okHttpClient);
+            ObjectMapper mapper = new ObjectMapper();
+            String requestBody = mapper.writeValueAsString(completion);
+            Request request = new Request.Builder()
+                    .url(this.apiHost + "v1/completions")
+                    .post(RequestBody.create(MediaType.parse(ContentType.JSON.getValue()), requestBody))
+                    .build();
+            //创建事件
+            EventSource eventSource = factory.newEventSource(request, eventSourceListener);
+        } catch (JsonProcessingException e) {
+            log.error("请求参数解析异常：{}", e);
+            e.printStackTrace();
+        } catch (Exception e) {
+            log.error("请求参数解析异常：{}", e);
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * 问答接口-简易版
+     *
+     * @param question            请求参数
+     * @param eventSourceListener sse监听器
+     * @see ConsoleEventSourceListener
+     */
+    public void streamCompletions(String question, EventSourceListener eventSourceListener) {
+        Completion q = Completion.builder()
+                .prompt(question)
+                .stream(true)
+                .build();
+        this.streamCompletions(q, eventSourceListener);
+    }
+
+    /**
+     * 流式输出，最新版的GPT-3.5 chat completion 更加贴近官方网站的问答模型
+     *
+     * @param chatCompletion      问答参数
+     * @param eventSourceListener sse监听器
+     * @see ConsoleEventSourceListener
+     */
+    public <T extends BaseChatCompletion> void streamChatCompletion(T chatCompletion, EventSourceListener eventSourceListener) {
+        if (Objects.isNull(eventSourceListener)) {
+            log.error("参数异常：EventSourceListener不能为空，可以参考：com.master.chat.llm.openai.sse.ConsoleEventSourceListener");
+            throw new BaseException(CommonError.PARAM_ERROR);
+        }
+        if (!chatCompletion.isStream()) {
+            chatCompletion.setStream(true);
+        }
+        try {
+            EventSource.Factory factory = EventSources.createFactory(this.okHttpClient);
+            ObjectMapper mapper = new ObjectMapper();
+            String requestBody = mapper.writeValueAsString(chatCompletion);
+            Request request = new Request.Builder()
+                    .url(this.apiHost + "v1/chat/completions")
+                    .post(RequestBody.create(MediaType.parse(ContentType.JSON.getValue()), requestBody))
+                    .build();
+            //创建事件
+            EventSource eventSource = factory.newEventSource(request, eventSourceListener);
+        } catch (JsonProcessingException e) {
+            log.error("请求参数解析异常：{}", e);
+            e.printStackTrace();
+        } catch (Exception e) {
+            log.error("请求参数解析异常：{}", e);
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * 流式输出，最新版的GPT-3.5 chat completion 更加贴近官方网站的问答模型
+     * 警告：（不支持图片输入）
+     *
+     * @param messages            问答列表
+     * @param eventSourceListener sse监听器
+     * @see ConsoleEventSourceListener
+     */
+    public void streamChatCompletion(List<Message> messages, EventSourceListener eventSourceListener) {
+        ChatCompletion chatCompletion = ChatCompletion.builder()
+                .messages(messages)
+                .stream(true)
+                .build();
+        this.streamChatCompletion(chatCompletion, eventSourceListener);
+    }
+
+
+    /**
+     * 插件问答简易版
+     * 默认取messages最后一个元素构建插件对话
+     * 默认模型：ChatCompletion.Model.GPT_3_5_TURBO_16K_0613
+     *
+     * @param chatCompletion            参数
+     * @param eventSourceListener       sse监听器
+     * @param pluginEventSourceListener 插件sse监听器，收集function call返回信息
+     * @param plugin                    插件
+     * @param <R>                       插件自定义函数的请求值
+     * @param <T>                       插件自定义函数的返回值
+     */
+    public <R extends PluginParam, T> void streamChatCompletionWithPlugin(ChatCompletion chatCompletion, EventSourceListener eventSourceListener, PluginListener pluginEventSourceListener, PluginAbstract<R, T> plugin) {
+        if (Objects.isNull(plugin)) {
+            this.streamChatCompletion(chatCompletion, eventSourceListener);
+            return;
+        }
+        if (CollectionUtil.isEmpty(chatCompletion.getMessages())) {
+            throw new BaseException(CommonError.MESSAGE_NOT_NUL);
+        }
+        Functions functions = Functions.builder()
+                .name(plugin.getFunction())
+                .description(plugin.getDescription())
+                .parameters(plugin.getParameters())
+                .build();
+        //没有值，设置默认值
+        if (Objects.isNull(chatCompletion.getFunctionCall())) {
+            chatCompletion.setFunctionCall("auto");
+        }
+        //tip: 覆盖自己设置的functions参数，使用plugin构造的functions
+        chatCompletion.setFunctions(Collections.singletonList(functions));
+        //调用OpenAi
+        if (Objects.isNull(pluginEventSourceListener)) {
+            pluginEventSourceListener = new DefaultPluginListener(this, eventSourceListener, plugin, chatCompletion);
+        }
+        this.streamChatCompletion(chatCompletion, pluginEventSourceListener);
+    }
+
+
+    /**
+     * 插件问答简易版
+     * 默认取messages最后一个元素构建插件对话
+     * 默认模型：ChatCompletion.Model.GPT_3_5_TURBO_16K_0613
+     *
+     * @param chatCompletion      参数
+     * @param eventSourceListener sse监听器
+     * @param plugin              插件
+     * @param <R>                 插件自定义函数的请求值
+     * @param <T>                 插件自定义函数的返回值
+     */
+    public <R extends PluginParam, T> void streamChatCompletionWithPlugin(ChatCompletion chatCompletion, EventSourceListener eventSourceListener, PluginAbstract<R, T> plugin) {
+        PluginListener pluginEventSourceListener = new DefaultPluginListener(this, eventSourceListener, plugin, chatCompletion);
+        this.streamChatCompletionWithPlugin(chatCompletion, eventSourceListener, pluginEventSourceListener, plugin);
+    }
+
+
+    /**
+     * 插件问答简易版
+     * 默认取messages最后一个元素构建插件对话
+     * 默认模型：ChatCompletion.Model.GPT_3_5_TURBO_16K_0613
+     *
+     * @param messages            问答参数
+     * @param eventSourceListener sse监听器
+     * @param plugin              插件
+     * @param <R>                 插件自定义函数的请求值
+     * @param <T>                 插件自定义函数的返回值
+     */
+    public <R extends PluginParam, T> void streamChatCompletionWithPlugin(List<Message> messages, EventSourceListener eventSourceListener, PluginAbstract<R, T> plugin) {
+        this.streamChatCompletionWithPlugin(messages, ChatCompletion.Model.GPT_3_5_TURBO_16K_0613.getName(), eventSourceListener, plugin);
+    }
+
+    /**
+     * 插件问答简易版
+     * 默认取messages最后一个元素构建插件对话
+     *
+     * @param messages            问答参数
+     * @param model               模型
+     * @param eventSourceListener eventSourceListener
+     * @param plugin              插件
+     * @param <R>                 插件自定义函数的请求值
+     * @param <T>                 插件自定义函数的返回值
+     */
+    public <R extends PluginParam, T> void streamChatCompletionWithPlugin(List<Message> messages, String model, EventSourceListener eventSourceListener, PluginAbstract<R, T> plugin) {
+        ChatCompletion chatCompletion = ChatCompletion.builder().messages(messages).model(model).build();
+        this.streamChatCompletionWithPlugin(chatCompletion, eventSourceListener, plugin);
+    }
+
+    @Override
+    public String supportModel() {
+        return ChatModelEnum.OPENAI.getValue();
+    }
+
+    @Override
+    public void updateKey(KeyUpdater.KeyModel keyModel) {
+        this.setApiKey(Collections.singletonList(keyModel.getAppKey()));
+        this.okHttpClient = this.okHttpClient();
+        this.openAiApi = new Retrofit.Builder()
+                .baseUrl(apiHost)
+                .client(okHttpClient)
+                .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
+                .addConverterFactory(JacksonConverterFactory.create())
+                .build().create(OpenAiApi.class);
+    }
+
+    /**
+     * 构造
+     *
+     * @return Builder
+     */
+    public static Builder builder() {
+        return new Builder();
+    }
 
     public static final class Builder {
-        /**
-         * api keys
-         */
         private @NotNull List<String> apiKey;
         /**
          * api请求地址，结尾处有斜杠
@@ -1440,10 +1661,17 @@ public class OpenAiClient {
          * @see OpenAIConst
          */
         private String apiHost;
+
+        /**
+         * 代理地址
+         */
+        private String[] proxyAddress;
+
         /**
          * 自定义OkhttpClient
          */
         private OkHttpClient okHttpClient;
+
 
         /**
          * api key的获取策略
@@ -1458,9 +1686,14 @@ public class OpenAiClient {
         public Builder() {
         }
 
+        public Builder apiKey(@NotNull List<String> val) {
+            apiKey = val;
+            return this;
+        }
+
         /**
          * @param val api请求地址，结尾处有斜杠
-         * @return Builder对象
+         * @return Builder
          * @see OpenAIConst
          */
         public Builder apiHost(String val) {
@@ -1468,8 +1701,13 @@ public class OpenAiClient {
             return this;
         }
 
-        public Builder apiKey(@NotNull List<String> val) {
-            apiKey = val;
+        /**
+         * @param val 代理地址，结尾处有斜杠
+         * @return Builder
+         * @see OpenAIConst
+         */
+        public Builder proxyAddress(String[] val) {
+            proxyAddress = val;
             return this;
         }
 

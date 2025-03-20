@@ -1,5 +1,7 @@
 package com.master.chat.llm.tongyi;
 
+import com.master.chat.client.enums.ChatModelEnum;
+import com.master.chat.llm.base.key.KeyUpdater;
 import lombok.Data;
 
 /**
@@ -12,7 +14,7 @@ import lombok.Data;
  * Copyright Ⓒ 2023 曜栋网络科技工作室 Limited All rights reserved.
  */
 @Data
-public class TongYiClient {
+public class TongYiClient implements KeyUpdater {
 
     private String appKey;
 
@@ -23,4 +25,14 @@ public class TongYiClient {
         this.appKey = appKey;
     }
 
+
+    @Override
+    public String supportModel() {
+        return ChatModelEnum.TONGYI.getValue();
+    }
+
+    @Override
+    public void updateKey(KeyModel keyModel) {
+        this.setAppKey(keyModel.getAppKey());
+    }
 }

@@ -1,6 +1,6 @@
 package com.master.chat.llm.openai.sse;
 
-import com.master.chat.llm.openai.OpenAiStreamClient;
+import com.master.chat.llm.openai.OpenAiClient;
 import com.master.chat.llm.openai.entity.chat.ChatCompletion;
 import com.master.chat.llm.openai.plugin.PluginAbstract;
 import lombok.extern.slf4j.Slf4j;
@@ -13,7 +13,7 @@ import okhttp3.sse.EventSourceListener;
 @Slf4j
 public class DefaultPluginListener extends PluginListener {
 
-    public DefaultPluginListener(OpenAiStreamClient client, EventSourceListener eventSourceListener, PluginAbstract plugin, ChatCompletion chatCompletion) {
+    public DefaultPluginListener(OpenAiClient client, EventSourceListener eventSourceListener, PluginAbstract plugin, ChatCompletion chatCompletion) {
         super(client, eventSourceListener, plugin, chatCompletion);
     }
 }

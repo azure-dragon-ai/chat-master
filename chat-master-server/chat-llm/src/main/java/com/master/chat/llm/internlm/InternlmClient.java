@@ -3,7 +3,10 @@ package com.master.chat.llm.internlm;
 import cn.hutool.http.ContentType;
 import com.alibaba.fastjson.JSON;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.master.chat.client.enums.ChatModelEnum;
+import com.master.chat.common.api.ResponseInfo;
 import com.master.chat.common.constant.AuthConstant;
+import com.master.chat.llm.base.key.KeyUpdater;
 import com.master.chat.llm.internlm.constant.ApiConstant;
 import com.master.chat.llm.internlm.entity.ModelsList;
 import com.master.chat.llm.internlm.entity.request.ChatCompletion;
@@ -11,7 +14,6 @@ import com.master.chat.llm.internlm.entity.response.ChatResponse;
 import com.master.chat.llm.internlm.interceptor.InternlmInterceptor;
 import com.master.chat.llm.internlm.interceptor.InternlmLogger;
 import com.master.chat.llm.internlm.listener.SSEListener;
-import com.master.chat.common.api.ResponseInfo;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -37,7 +39,7 @@ import java.util.concurrent.TimeUnit;
  */
 @Slf4j
 @NoArgsConstructor(force = true)
-public class InternlmClient {
+public class InternlmClient implements KeyUpdater {
     @NotNull
     @Getter
     @Setter
@@ -146,6 +148,16 @@ public class InternlmClient {
      */
     public static Builder builder() {
         return new Builder();
+    }
+
+    @Override
+    public String supportModel() {
+        return ChatModelEnum.INTERNLM.getValue();
+    }
+
+    @Override
+    public void updateKey(KeyModel keyModel) {
+        this.setToken(keyModel.getAppSecret());
     }
 
     public static final class Builder {

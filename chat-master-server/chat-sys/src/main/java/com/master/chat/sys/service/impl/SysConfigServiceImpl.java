@@ -5,32 +5,33 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.master.chat.common.constant.RedisConstants;
-import com.master.chat.common.constant.SysConfigConstants;
-import com.master.chat.framework.base.BaseEntity;
-import com.master.chat.framework.util.RedisUtils;
-import com.master.chat.sys.mapper.SysConfigMapper;
-import com.master.chat.sys.pojo.command.SysConfigCommand;
-import com.master.chat.sys.pojo.entity.SysConfig;
-import com.master.chat.sys.pojo.vo.SysConfigVO;
-import com.master.chat.sys.service.ISysConfigService;
+import com.master.chat.client.model.dto.Query;
 import com.master.chat.common.annotation.DataSource;
 import com.master.chat.common.api.IPageInfo;
-import com.master.chat.client.model.dto.Query;
 import com.master.chat.common.api.ResponseInfo;
+import com.master.chat.common.constant.RedisConstants;
 import com.master.chat.common.constant.StringPoolConstant;
+import com.master.chat.common.constant.SysConfigConstants;
 import com.master.chat.common.enums.DataSourceTypeEnum;
 import com.master.chat.common.enums.StatusEnum;
 import com.master.chat.common.exception.BusinessException;
 import com.master.chat.common.exception.ErrorException;
 import com.master.chat.common.exception.ValidateException;
 import com.master.chat.common.utils.DozerUtil;
+import com.master.chat.framework.base.BaseEntity;
+import com.master.chat.framework.util.RedisUtils;
 import com.master.chat.framework.validator.ValidatorUtil;
+import com.master.chat.sys.mapper.SysConfigMapper;
+import com.master.chat.sys.pojo.command.SysConfigCommand;
+import com.master.chat.sys.pojo.entity.SysConfig;
+import com.master.chat.sys.pojo.vo.SysConfigVO;
+import com.master.chat.sys.service.ISysConfigService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -46,7 +47,7 @@ import java.util.Set;
  */
 @Service
 public class SysConfigServiceImpl extends ServiceImpl<SysConfigMapper, SysConfig> implements ISysConfigService {
-    @Autowired
+    @Resource
     private SysConfigMapper configMapper;
     @Autowired
     private RedisUtils redisUtil;

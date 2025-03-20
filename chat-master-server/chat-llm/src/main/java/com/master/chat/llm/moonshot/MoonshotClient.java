@@ -5,7 +5,10 @@ import cn.hutool.http.HttpRequest;
 import cn.hutool.http.HttpUtil;
 import com.alibaba.fastjson.JSON;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.master.chat.client.enums.ChatModelEnum;
+import com.master.chat.common.api.ResponseInfo;
 import com.master.chat.common.constant.AuthConstant;
+import com.master.chat.llm.base.key.KeyUpdater;
 import com.master.chat.llm.moonshot.constant.ApiConstant;
 import com.master.chat.llm.moonshot.entity.ModelsList;
 import com.master.chat.llm.moonshot.entity.request.ChatCompletion;
@@ -13,7 +16,6 @@ import com.master.chat.llm.moonshot.entity.response.ChatResponse;
 import com.master.chat.llm.moonshot.interceptor.MoonshotInterceptor;
 import com.master.chat.llm.moonshot.interceptor.MoonshotLogger;
 import com.master.chat.llm.moonshot.listener.SSEListener;
-import com.master.chat.common.api.ResponseInfo;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -42,7 +44,7 @@ import java.util.concurrent.TimeUnit;
  */
 @Slf4j
 @NoArgsConstructor(force = true)
-public class MoonshotClient {
+public class MoonshotClient implements KeyUpdater {
     @NotNull
     @Getter
     @Setter
@@ -249,6 +251,16 @@ public class MoonshotClient {
      */
     public static Builder builder() {
         return new Builder();
+    }
+
+    @Override
+    public String supportModel() {
+        return ChatModelEnum.MOONSHOT.getValue();
+    }
+
+    @Override
+    public void updateKey(KeyModel keyModel) {
+        this.setApiKey(keyModel.getAppKey());
     }
 
     public static final class Builder {

@@ -1,11 +1,12 @@
 {
-  "name": "chat-master-web",
+  "name": "chat-master",
   "version": "1.1.0",
   "private": false,
-  "description": "Chat Web",
+  "description": "ChatMaster",
   "author": "panday <suzui94@gmail.com>",
   "keywords": [
     "ChatGPT",
+    "Deepseek",
     "ChatGLM",
     "文心一言",
     "通义千问",

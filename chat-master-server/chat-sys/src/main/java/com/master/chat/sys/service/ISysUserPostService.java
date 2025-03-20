@@ -1,8 +1,8 @@
 package com.master.chat.sys.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.master.chat.sys.pojo.entity.SysUserPost;
 import com.master.chat.common.api.ResponseInfo;
+import com.master.chat.sys.pojo.entity.SysUserPost;
 
 import java.util.List;
 

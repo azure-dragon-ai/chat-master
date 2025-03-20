@@ -1,6 +1,6 @@
 package com.master.chat.api.controller.app;
 
-import com.master.chat.api.base.BaseAppController;
+import com.master.chat.api.controller.base.BaseAppController;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 

@@ -1,7 +1,9 @@
 package com.master.chat.llm.spark;
 
 import com.alibaba.fastjson.JSON;
+import com.master.chat.client.enums.ChatModelEnum;
 import com.master.chat.llm.base.exception.LLMException;
+import com.master.chat.llm.base.key.KeyUpdater;
 import com.master.chat.llm.spark.entity.request.ChatRequest;
 import com.master.chat.llm.spark.entity.response.ChatSyncResponse;
 import com.master.chat.llm.spark.enums.ModelEnum;
@@ -32,7 +34,7 @@ import java.util.*;
  */
 @Slf4j
 @Data
-public class SparkClient {
+public class SparkClient implements KeyUpdater {
     public String appid;
     public String apiKey;
     public String apiSecret;
@@ -132,4 +134,15 @@ public class SparkClient {
         return new Request.Builder().url(httpUrl.toString().replace("http://", "ws://").replace("https://", "wss://")).build();
     }
 
+    @Override
+    public String supportModel() {
+        return ChatModelEnum.SPARK.getValue();
+    }
+
+    @Override
+    public void updateKey(KeyModel keyModel) {
+        this.setAppid(keyModel.getAppId());
+        this.setApiSecret(keyModel.getAppSecret());
+        this.setApiKey(keyModel.getAppKey());
+    }
 }
