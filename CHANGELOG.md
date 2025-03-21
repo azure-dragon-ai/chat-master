@@ -14,7 +14,6 @@
     - 更新了Mybatis-Plus包、Druid包，将mysql-connector包改为8.0+
     - 更新了WebSecurity配置
     - 更新了Dozer版本
-- 增加Dify接口。
 
 ## BugFix
 - 前端用户/后端用户同时登录问题，区分前台用户token和后台用户token
