@@ -11,6 +11,7 @@ import com.master.chat.llm.locallm.langchain.enums.ModelEnum;
 import com.master.chat.llm.locallm.langchain.listenter.SSEListener;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import okhttp3.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -49,7 +50,7 @@ public class LangchainClient {
     @SneakyThrows
     public Boolean buildChatCompletion(HttpServletResponse response, SseEmitter sseEmitter, Long chatId, String conversationId, Boolean isWs, String uid,
                                        List<ChatMessageDTO> chatMessages, String prompt, String version, ModelDTO modelDTO) {
-        SSEListener sseListener = new SSEListener(response, sseEmitter, chatId, conversationId, version, modelDTO.getKnowledge(), prompt, uid, isWs);
+
         List<ChatCompletionMessage> history = new ArrayList<>();
         chatMessages.stream().forEach(v -> {
             ChatCompletionMessage message = ChatCompletionMessage.builder().content(v.getContent()).role(v.getRole()).build();
@@ -64,9 +65,13 @@ public class LangchainClient {
                 .build();
         String domain = ValidatorUtil.isNotNull(modelDTO.getModelUrl()) ? modelDTO.getModelUrl() : ApiConstant.BASE_DOMAIN;
         ModelEnum modelUrl = ValidatorUtil.isNotNull(modelDTO.getKnowledge()) ? ModelEnum.KNOWLEDGE : ModelEnum.LLM;
-        localLMClient.streamChat(chat, sseListener, domain, modelUrl.getUrl());
-        sseListener.getCountDownLatch().await();
-        return sseListener.getError();
+        SSEListener sseListener = new SSEListener(response, sseEmitter, chatId, conversationId, version, modelDTO.getKnowledge(), prompt, uid, isWs);
+        Response callResponse = localLMClient.streamChat(chat, domain, modelUrl.getUrl());
+        if (callResponse == null || callResponse.code() != 200) {
+            log.error("Langchain流式响应失败: " + callResponse.body().string());
+            return true;
+        }
+        return sseListener.streamChat(callResponse);
     }
 
 }
