@@ -18,6 +18,7 @@ import okhttp3.*;
 import okhttp3.logging.HttpLoggingInterceptor;
 
 import javax.validation.constraints.NotNull;
+import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
