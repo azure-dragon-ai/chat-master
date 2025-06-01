@@ -1,13 +1,15 @@
 # ChatMASTER 部署运行教程
 
-> 若需要二开建议您参考运行教程，若您是小白只想直接使用，可以查看[一键部署教程](#部署)
+> 若需要本地运行及开发建议您参考[运行](#运行适用于windowsmaclinux)教程，若您是小白只想直接使用，可以查看[一键部署](#docker-compose-一键部署推荐)
 - 后台管理系统默认密码为admin 123456 
 - 客户端账号密码自行注册，登录即注册
 
-## 部署
+## 目录
 - 安装Docker
 - Docker Compose [一键部署](#docker-compose-一键部署推荐)（推荐）
 - docker[部署](#docker部署)
+- 手动[部署](#手动部署)
+- 本地[运行](#运行适用于windowsmaclinux)
 
 ## 安装Docker
 
@@ -241,6 +243,7 @@ npm run dev
 
 ### 运行客户端（chat-master-web）
 > 因客户端使用vue3，node 需要 `^14 || ^16 || ^18 || ^19` 版本（`node >= 14` 需要安装 [fetch polyfill](https://github.com/developit/unfetch#usage-as-a-polyfill)），建议使用nvm 安装node版本，可进行切换多版本控制，[安装nvm](https://github.com/nvm-sh/nvm) 或直接安装node，[安装node](https://nodejs.org/zh-cn/download)
+
 > 避免出现不必要问题，建议使用 node 18
 
 ```shell
